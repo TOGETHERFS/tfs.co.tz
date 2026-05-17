@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interest Calculation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-case { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .result { background-color: #f5f5f5; padding: 10px; margin: 10px 0; }
+        input, select { margin: 5px; padding: 5px; }
+        button { padding: 10px 20px; background-color: #007cba; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Loan Interest Calculation Test</h1>
+    
+    <div class="test-case">
+        <h3>Test Calculator</h3>
+        <label>Principal: $<input type="number" id="principal" value="10000" step="100"></label><br>
+        <label>Interest Rate: <input type="number" id="rate" value="10" step="0.1"> % per month</label><br>
+        <label>Term: <input type="number" id="term" value="12"> months</label><br>
+        <label>Interest Type: 
+            <select id="interestType">
+                <option value="reducing">Reducing Balance</option>
+                <option value="flat">Flat Interest</option>
+            </select>
+        </label><br>
+        <label>Repayment Schedule:
+            <select id="schedule">
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Bi-weekly</option>
+                <option value="daily">Daily</option>
+            </select>
+        </label><br>
+        <button onclick="calculate()">Calculate</button>
+        
+        <div id="result" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        function calculate() {
+            const principal = parseFloat(document.getElementById('principal').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+            const term = parseInt(document.getElementById('term').value);
+            const interestType = document.getElementById('interestType').value;
+            const schedule = document.getElementById('schedule').value;
+            
+            let monthlyRate = rate / 100;
+            let effectiveTerm = term;
+            let ratePerInstallment = monthlyRate;
+            
+            // Adjust for different schedules
+            if (schedule === 'daily') {
+                ratePerInstallment = monthlyRate / 30;
+                effectiveTerm = term * 30;
+            } else if (schedule === 'weekly') {
+                ratePerInstallment = monthlyRate / 4;
+                effectiveTerm = term * 4;
+            } else if (schedule === 'biweekly') {
+                ratePerInstallment = monthlyRate / 2;
+                effectiveTerm = term * 2;
+            }
+            
+            let monthlyPayment, totalAmount, totalInterest;
+            
+            if (interestType === 'reducing') {
+                // Reducing balance calculation
+                if (ratePerInstallment > 0) {
+                    monthlyPayment = principal * (ratePerInstallment * Math.pow(1 + ratePerInstallment, effectiveTerm)) / 
+                                   (Math.pow(1 + ratePerInstallment, effectiveTerm) - 1);
+                } else {
+                    monthlyPayment = principal / effectiveTerm;
+                }
+                totalAmount = monthlyPayment * effectiveTerm;
+                totalInterest = totalAmount - principal;
+            } else {
+                // Flat interest calculation
+                let termInMonths = term;
+                if (schedule === 'daily') {
+                    termInMonths = term / 30;
+                } else if (schedule === 'weekly') {
+                    termInMonths = term / 4;
+                } else if (schedule === 'biweekly') {
+                    termInMonths = term / 2;
+                }
+                
+                totalInterest = principal * monthlyRate * termInMonths;
+                totalAmount = principal + totalInterest;
+                monthlyPayment = totalAmount / effectiveTerm;
+            }
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <h4>Calculation Results:</h4>
+                <p><strong>Payment per ${schedule}:</strong> $${monthlyPayment.toFixed(2)}</p>
+                <p><strong>Total Amount:</strong> $${totalAmount.toFixed(2)}</p>
+                <p><strong>Total Interest:</strong> $${totalInterest.toFixed(2)}</p>
+                <p><strong>Effective Interest Rate:</strong> ${((totalInterest/principal) * 100).toFixed(2)}%</p>
+                ${schedule !== 'monthly' ? `<p><strong>Monthly Equivalent:</strong> $${(monthlyPayment * (schedule === 'daily' ? 30 : schedule === 'weekly' ? 4 : schedule === 'biweekly' ? 2 : 1)).toFixed(2)}</p>` : ''}
+            `;
+        }
+        
+        // Run initial calculation
+        calculate();
+    </script>
+</body>
+</html>

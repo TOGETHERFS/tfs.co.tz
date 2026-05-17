@@ -1,0 +1,69 @@
+# Production Deployment .gitignore
+# Exclude development and testing files
+
+# Development dependencies
+/node_modules
+/vendor
+
+# Development environment files
+.env.local
+.env.development
+.env.testing
+
+# Development tools
+.vscode/
+.idea/
+*.sublime-*
+
+# Testing files
+/tests
+phpunit.xml
+.phpunit.result.cache
+
+# Development logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Development cache
+.npm
+.yarn-integrity
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Development documentation
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Development scripts
+package.json
+package-lock.json
+webpack.mix.js
+vite.config.js
+
+# Source maps
+*.map
+
+# Development assets
+/resources/js
+/resources/sass
+/resources/css
+
+# Keep only compiled assets
+!/public/build
+!/public/css
+!/public/js
+!/public/images

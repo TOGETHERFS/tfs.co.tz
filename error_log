@@ -1,0 +1,60 @@
+[20-Oct-2025 06:30:53 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:30:53 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:30:53 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:17 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:17 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:17 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:18 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:18 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:18 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:18 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:18 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:18 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:19 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:19 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:19 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:19 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:19 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:19 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:20 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:20 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:20 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:20 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:20 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:20 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:20 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:20 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:20 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:21 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:21 UTC] PHP Warning:  require(/home/phidtech/phidlms.co.tz/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/phidtech/phidlms.co.tz/index.php on line 34
+[20-Oct-2025 06:31:21 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/phidtech/phidlms.co.tz/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/phidtech/phidlms.co.tz/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/phidtech/phidlms.co.tz/index.php on line 34

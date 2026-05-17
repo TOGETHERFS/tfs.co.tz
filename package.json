@@ -1,0 +1,29 @@
+{
+    "name": "phid-lms",
+    "version": "1.0.0",
+    "description": "PHID LMS - Microfinance Management System",
+    "scripts": {
+        "dev": "npm run development",
+        "development": "mix",
+        "watch": "mix watch",
+        "watch-poll": "mix watch -- --watch-options-poll=1000",
+        "hot": "mix watch --hot",
+        "prod": "npm run production",
+        "production": "mix --production",
+        "build": "npm run production"
+    },
+    "devDependencies": {
+        "@tailwindcss/forms": "^0.5.3",
+        "autoprefixer": "^10.4.14",
+        "laravel-mix": "^6.0.49",
+        "postcss": "^8.4.24",
+        "tailwindcss": "^3.3.2"
+    },
+    "browserslist": [
+        "> 0.5%",
+        "last 2 versions",
+        "Firefox ESR",
+        "not dead",
+        "not IE 11"
+    ]
+}
