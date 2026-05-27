@@ -55,8 +55,8 @@ class TenantAccessGate
             }
         }
 
-        // Check if user belongs to the current tenant
-        if ($user->tenant_id !== $sessionTenantId) {
+        // Check if user belongs to the current tenant (loose comparison to handle string/int mismatch)
+        if ((int)$user->tenant_id !== (int)$sessionTenantId) {
             // User doesn't belong to current tenant
             auth()->logout();
             session()->flush();
