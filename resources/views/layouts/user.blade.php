@@ -18,8 +18,8 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     @endif
 
-    <!-- Alpine.js (local) -->
-    <script defer src="{{ asset('js/alpine.min.js') }}"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
