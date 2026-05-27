@@ -147,38 +147,9 @@
         </div>
 
         <!-- Row 3: Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <!-- Column 1: Current Plan -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-4 border-b">
-                    <h3 class="font-semibold text-gray-900">{{ __('messages.current_plan') }}</h3>
-                </div>
-                <div class="p-4">
-                    @if(isset($subscription) && $subscription && optional($subscription->plan)->name)
-                        <div class="text-center p-4 bg-green-50 rounded-lg">
-                            <p class="text-lg font-bold text-green-800">{{ $subscription->plan->name }}</p>
-                            <p class="text-sm text-green-600">TZS {{ number_format($subscription->plan->price ?? 0) }}{{ __('messages.per_month') }}</p>
-                        </div>
-                    @elseif($isTrialActive ?? false)
-                        <div class="text-center p-4 bg-yellow-50 rounded-lg" x-data="trialCountdown('{{ $trialEndsAt ?? '' }}')">
-                            <p class="text-lg font-bold text-yellow-800">{{ __('messages.trial_active') }}</p>
-                            <p class="text-sm text-yellow-600">{{ __('messages.trial_expires') }}: <span x-text="timeLeft.days"></span>d <span x-text="timeLeft.hours"></span>h</p>
-                        </div>
-                    @else
-                        <div class="text-center p-4 bg-red-50 rounded-lg">
-                            <p class="text-lg font-bold text-red-800">{{ __('messages.no_active_plan') }}</p>
-                            <p class="text-sm text-red-600">{{ __('messages.select_plan') }}</p>
-                        </div>
-                    @endif
-                    @can('manage-billing')
-                    <a href="{{ route('billing.subscription') }}" class="mt-4 block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                        {{ __('messages.manage_subscription') }}
-                    </a>
-                    @endcan
-                </div>
-            </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
-            <!-- Column 2: Your Role -->
+            <!-- Column 1: Your Role -->
             <div class="bg-white rounded-lg shadow">
                 <div class="p-4 border-b">
                     <h3 class="font-semibold text-gray-900">{{ __('messages.your_role') }}</h3>

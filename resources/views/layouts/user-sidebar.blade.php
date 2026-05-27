@@ -124,36 +124,6 @@
             </div>
         </div>
 
-        <!-- Billing - Rose/Pink Theme -->
-        @php
-            $isSuperAdmin = auth()->check() && method_exists(auth()->user(), 'isSuperAdmin') && auth()->user()->isSuperAdmin();
-        @endphp
-        <div class="space-y-1">
-            <button type="button" @click="activeDropdown = activeDropdown === 'billing' ? null : 'billing'" 
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('billing.*') ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md' : 'text-gray-700 hover:bg-rose-50' }}">
-                <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('billing.*') ? 'bg-white/20' : 'bg-rose-100 text-rose-600' }} mr-3">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                    </div>
-                    {{ __('messages.billing') }}
-                </div>
-                <svg class="h-4 w-4 transition-transform" :class="{ 'rotate-90': activeDropdown === 'billing' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-            <div x-show="activeDropdown === 'billing'" x-transition class="ml-8 space-y-1 border-l-2 border-rose-200 pl-4">
-                <a href="{{ safeRoute('billing.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('billing.index') ? 'bg-rose-100 text-rose-700 font-medium' : 'text-gray-600 hover:text-rose-600 hover:bg-rose-50' }}">{{ __('messages.overview') }}</a>
-                <a href="{{ safeRoute('billing.subscription') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('billing.subscription') ? 'bg-rose-100 text-rose-700 font-medium' : 'text-gray-600 hover:text-rose-600 hover:bg-rose-50' }}">{{ __('messages.manage_subscription') }}</a>
-                @if($isSuperAdmin)
-                    <a href="{{ safeRoute('billing.plans') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('billing.plans') ? 'bg-rose-100 text-rose-700 font-medium' : 'text-gray-600 hover:text-rose-600 hover:bg-rose-50' }}">{{ __('messages.subscription_plans') }}</a>
-                    @if (Route::has('billing.invoices'))
-                        <a href="{{ safeRoute('billing.invoices') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('billing.invoices*') ? 'bg-rose-100 text-rose-700 font-medium' : 'text-gray-600 hover:text-rose-600 hover:bg-rose-50' }}">{{ __('messages.invoices') }}</a>
-                    @endif
-                @endif
-            </div>
-        </div>
 
         <!-- Reports - Cyan/Teal Theme -->
         @php $reportsActive = request()->routeIs('reports.*'); @endphp
