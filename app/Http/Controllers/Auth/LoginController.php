@@ -63,17 +63,15 @@ class LoginController extends Controller
             ]);
 
             try {
-                if ($request->hasSession()) {
-                    $request->session()->regenerate();
-                    $request->session()->put('locale', 'sw');
-                    \Log::info('Session regenerated via request', ['user_id' => Auth::id()]);
-                } else {
-                    // Fallback: use session store directly (shared hosting compatibility)
-                    $sessionStore = app('session.store');
-                    $sessionStore->put('locale', 'sw');
-                    $sessionStore->save();
-                    \Log::info('Session saved via store fallback', ['user_id' => Auth::id(), 'session_id' => $sessionStore->getId()]);
+                $sessionStore = app('session.store');
+                // Manually attach session to request if StartSession middleware didn't (shared hosting fix)
+                if (!$request->hasSession()) {
+                    $request->setLaravelSession($sessionStore);
                 }
+                $request->session()->regenerate();
+                $request->session()->put('locale', 'sw');
+                $request->session()->save();
+                \Log::info('Session regenerated and saved', ['user_id' => Auth::id(), 'session_id' => $request->session()->getId()]);
             } catch (\Exception $e) {
                 \Log::error('Session handling error after login', ['error' => $e->getMessage(), 'user_id' => Auth::id()]);
             }
