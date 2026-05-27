@@ -106,13 +106,6 @@
                         <!-- Language Switcher -->
                         @include('components.language-switcher')
                         
-                        <!-- Support Contact -->
-                        <div class="hidden lg:block">
-                            <span class="text-xs font-semibold text-yellow-600 bg-yellow-50 px-3 py-1.5 rounded-md border border-yellow-200">
-                                <span class="inline-block mr-1">📞</span>
-                                Technical support call 0682188544
-                            </span>
-                        </div>
                         
                         <!-- Notifications -->
                         <button class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">
