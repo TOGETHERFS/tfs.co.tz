@@ -974,7 +974,7 @@ return [
 
     // Login page
     'sign_in_to_account' => 'Sign in to your account',
-    'welcome_back' => 'Welcome back to PhidTech LMS',
+    'welcome_back' => 'Welcome back to TFS MS',
     'email_address' => 'Email address',
     'enter_email' => 'Enter your email',
     'enter_password' => 'Enter your password',
