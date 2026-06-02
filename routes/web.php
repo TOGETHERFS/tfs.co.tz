@@ -1729,3 +1729,57 @@ Route::get('/delete-kware-data', function () {
 
     return response('<pre style="font-family: monospace; padding: 20px;">' . implode("\n", $output) . '</pre>');
 })->name('delete.kware.data');
+
+// Diagnostic + auto-fix: visit /fix-tenant-setup in browser while logged in
+Route::get('/fix-tenant-setup', function () {
+    $out = [];
+    $out[] = "=== Tenant Setup Diagnostic & Fix ===\n";
+
+    // Show all tenants
+    $tenants = \App\Models\Tenant::withoutGlobalScopes()->get(['id','name','status','trial_ends_at']);
+    $out[] = "Tenants in DB:";
+    foreach ($tenants as $t) {
+        $out[] = "  id={$t->id} name={$t->name} status={$t->status} trial={$t->trial_ends_at}";
+    }
+
+    // Show current user
+    if (auth()->check()) {
+        $user = auth()->user();
+        $out[] = "\nCurrent user: id={$user->id} email={$user->email} role={$user->role} tenant_id={$user->tenant_id}";
+
+        // Fix: ensure tenant status is 'active'
+        if ($user->tenant_id) {
+            $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($user->tenant_id);
+            if ($tenant) {
+                $old = $tenant->status;
+                $tenant->status = 'active';
+                $tenant->save();
+                $out[] = "✅ Tenant [{$tenant->name}] status changed from '{$old}' → 'active'";
+            } else {
+                $out[] = "⚠️  No tenant found with id={$user->tenant_id}";
+            }
+        } else {
+            // Try to assign user to first tenant
+            $firstTenant = \App\Models\Tenant::withoutGlobalScopes()->first();
+            if ($firstTenant) {
+                $user->tenant_id = $firstTenant->id;
+                $user->save();
+                $firstTenant->status = 'active';
+                $firstTenant->save();
+                $out[] = "✅ Assigned user to tenant [{$firstTenant->name}] and set status to 'active'";
+            } else {
+                $out[] = "❌ No tenants found in DB. Please create a tenant.";
+            }
+        }
+
+        // Show clients count for this user's tenant
+        $count = \App\Models\Client::withoutGlobalScopes()->where('tenant_id', auth()->user()->fresh()->tenant_id)->count();
+        $out[] = "\nClients in DB for tenant_id={$user->tenant_id}: {$count}";
+
+    } else {
+        $out[] = "\n⚠️  Not authenticated. Please log in first.";
+    }
+
+    $out[] = "\n✅ Done. Refresh the dashboard now.";
+    return response('<pre style="font-family:monospace;padding:20px;background:#f9f9f9;">' . implode("\n", $out) . '</pre>');
+})->middleware(['auth']);

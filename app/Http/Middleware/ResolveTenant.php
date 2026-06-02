@@ -62,8 +62,12 @@ class ResolveTenant
             // Share tenant data with views
             view()->share('currentTenant', $tenant);
         } elseif ($hasSession) {
-            // Clear tenant session if no valid tenant
-            session()->forget(['tenant_id', 'tenant_name', 'tenant_slug']);
+            // No active tenant found — fall back to auth user's tenant_id so session stays populated
+            if (auth()->check() && auth()->user()->tenant_id) {
+                session(['tenant_id' => auth()->user()->tenant_id]);
+            } else {
+                session()->forget(['tenant_id', 'tenant_name', 'tenant_slug']);
+            }
         }
 
         return $next($request);

@@ -147,8 +147,8 @@ class ClientController extends Controller
             $request->merge(['date_of_birth' => "{$y}-{$m}-{$d}"]);
         }
 
-        // Resolve tenant early - needed for validation rules
-        $tenantId = session('tenant_id') ?? optional(auth()->user())->tenant_id;
+        // Resolve tenant early — auth user is authoritative, session is fallback
+        $tenantId = optional(auth()->user())->tenant_id ?? session('tenant_id');
         
         if (!$tenantId) {
             logger()->error('Client store - No tenant context');
@@ -168,13 +168,13 @@ class ClientController extends Controller
                 'required',
                 'string',
                 'regex:/^255[0-9]{9}$/',
-                Rule::unique('clients')->where('tenant_id', session('tenant_id'))
+                Rule::unique('clients')->where('tenant_id', $tenantId)
             ],
             'email' => [
                 'nullable',
                 'email',
                 'max:255',
-                Rule::unique('clients')->where('tenant_id', session('tenant_id'))
+                Rule::unique('clients')->where('tenant_id', $tenantId)
             ],
             'address' => 'nullable|string|max:500',
             'region' => 'nullable|string|max:100',
@@ -187,7 +187,7 @@ class ClientController extends Controller
                 'nullable',
                 'string',
                 'max:50',
-                Rule::unique('clients')->where('tenant_id', session('tenant_id'))
+                Rule::unique('clients')->where('tenant_id', $tenantId)
             ],
             'status' => 'required|in:active,inactive,blacklisted',
             'branch_name' => 'nullable|string|max:255',
@@ -203,11 +203,11 @@ class ClientController extends Controller
             'emergency_contact_relationship' => 'nullable|string|in:spouse,parent,child,sibling,friend,director,other',
             'branch_id' => [
                 'nullable',
-                Rule::exists('branches', 'id')->where('tenant_id', session('tenant_id'))
+                Rule::exists('branches', 'id')->where('tenant_id', $tenantId)
             ],
             'loan_officer_id' => [
                 'nullable',
-                Rule::exists('users', 'id')->where('tenant_id', session('tenant_id'))
+                Rule::exists('users', 'id')->where('tenant_id', $tenantId)
             ],
             'initial_product_id' => 'nullable|exists:loan_products,id',
             'group_id' => 'nullable|exists:groups,id',
@@ -215,7 +215,7 @@ class ClientController extends Controller
         ]);
 
         // Resolve tenant and set it explicitly to avoid NOT NULL violations
-        $tenantId = session('tenant_id') ?? optional(auth()->user())->tenant_id;
+        $tenantId = optional(auth()->user())->tenant_id ?? session('tenant_id');
         if (!$tenantId) {
             // If tenant cannot be resolved, return appropriate error response
             if ($request->expectsJson()) {
