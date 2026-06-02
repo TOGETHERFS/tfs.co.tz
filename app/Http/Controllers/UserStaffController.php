@@ -223,7 +223,7 @@ class UserStaffController extends Controller
         $tenantId = session('tenant_id');
         
         // Ensure the user belongs to the current tenant
-        if ($user->tenant_id !== $tenantId) {
+        if ((int)$user->tenant_id !== (int)$tenantId) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -256,10 +256,10 @@ class UserStaffController extends Controller
      */
     public function edit(User $user)
     {
-        $tenantId = session('tenant_id');
+        $tenantId = session('tenant_id') ?? auth()->user()->tenant_id;
         
         // Ensure the user belongs to the current tenant
-        if ($user->tenant_id !== $tenantId) {
+        if ((int)$user->tenant_id !== (int)$tenantId) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -296,10 +296,10 @@ class UserStaffController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $tenantId = session('tenant_id');
+        $tenantId = session('tenant_id') ?? auth()->user()->tenant_id;
         
         // Ensure the user belongs to the current tenant
-        if ($user->tenant_id !== $tenantId) {
+        if ((int)$user->tenant_id !== (int)$tenantId) {
             abort(403, 'Unauthorized action.');
         }
 

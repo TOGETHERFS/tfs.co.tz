@@ -265,6 +265,9 @@ Route::middleware(['auth', 'resolve.tenant', 'tenant.access'])->group(function (
     Route::post('/user/branches', [UserBranchController::class, 'store'])
         ->middleware(['role:admin,manager,officer', 'enforce.branch.limit', 'tenant.access'])
         ->name('user.branches.store');
+    Route::get('/user/branches/{branch}/edit', [UserBranchController::class, 'edit'])
+        ->middleware(['role:admin,manager,officer', 'tenant.access'])
+        ->name('user.branches.edit');
     Route::put('/user/branches/{branch}', [UserBranchController::class, 'update'])
         ->middleware(['role:admin,manager,officer', 'tenant.access'])
         ->name('user.branches.update');

@@ -756,6 +756,10 @@ function clientCreate() {
                         window.location.href = '/clients';
                     }
                 } else {
+                    if (response.status === 401 || response.status === 419) {
+                        window.location.href = '/login';
+                        return;
+                    }
                     const contentType = response.headers.get('content-type') || '';
                     if (contentType.includes('application/json')) {
                         const data = await response.json();

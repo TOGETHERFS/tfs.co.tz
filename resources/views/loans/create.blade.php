@@ -1165,9 +1165,12 @@ function loanCreate() {
                     alert(message || 'Loan was created but no record ID was returned by the server.');
                     return;
                 } else {
+                    if (response.status === 401 || response.status === 419) {
+                        window.location.href = '/login';
+                        return;
+                    }
                     if (data && data.errors) {
                         this.errors = data.errors;
-                        // Show field + message so user knows what's wrong
                         const firstField = Object.keys(data.errors)[0];
                         const firstMsg = Object.values(data.errors).flat()[0];
                         alert('Error in field "' + firstField + '": ' + firstMsg);

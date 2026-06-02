@@ -80,6 +80,20 @@ class UserBranchController extends Controller
     }
 
     /**
+     * Show edit form for a branch
+     */
+    public function edit(Branch $branch)
+    {
+        $tenantId = session('tenant_id') ?? auth()->user()->tenant_id;
+
+        if ((int)$branch->tenant_id !== (int)$tenantId) {
+            abort(403, 'Unauthorized access to branch.');
+        }
+
+        return view('user.branches.edit', compact('branch'));
+    }
+
+    /**
      * Update the specified branch
      */
     public function update(Request $request, Branch $branch)
@@ -87,7 +101,7 @@ class UserBranchController extends Controller
         $tenantId = session('tenant_id');
         
         // Ensure the branch belongs to the current tenant
-        if ($branch->tenant_id !== $tenantId) {
+        if ((int)$branch->tenant_id !== (int)$tenantId) {
             abort(403, 'Unauthorized access to branch.');
         }
         
@@ -132,7 +146,7 @@ class UserBranchController extends Controller
         $tenantId = session('tenant_id');
         
         // Ensure the branch belongs to the current tenant
-        if ($branch->tenant_id !== $tenantId) {
+        if ((int)$branch->tenant_id !== (int)$tenantId) {
             abort(403, 'Unauthorized access to branch.');
         }
 
