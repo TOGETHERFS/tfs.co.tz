@@ -345,45 +345,23 @@
                     </div>
 
                     <!-- Loan Officer Selection (searchable) -->
-                    <div x-data="{
-                        officerSearch: '',
-                        showDropdown: false,
-                        allOfficers: @json(($loanOfficers ?? collect())->map(fn($o) => ['id' => $o->id, 'name' => $o->name, 'role' => $o->role])),
-                        get filtered() {
-                            if (!this.officerSearch) return this.allOfficers;
-                            const q = this.officerSearch.toLowerCase();
-                            return this.allOfficers.filter(o => o.name.toLowerCase().includes(q) || o.role.toLowerCase().includes(q));
-                        },
-                        selectOfficer(officer) {
-                            $dispatch('set-officer', { id: officer.id, name: officer.name + ' (' + officer.role + ')' });
-                            this.officerSearch = officer.name + ' (' + officer.role + ')';
-                            this.showDropdown = false;
-                        },
-                        clearOfficer() {
-                            this.officerSearch = '';
-                            $dispatch('set-officer', { id: '', name: '' });
-                        }
-                    }" @click.outside="showDropdown = false">
+                    <div class="relative" @click.outside="showOfficerDropdown = false">
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             {{ __('messages.loan_officer') }}
                         </label>
-                        <input type="hidden" name="loan_officer_id" x-model="form.loan_officer_id"
-                               @set-officer.window="form.loan_officer_id = $event.detail.id">
-                        <div class="relative">
-                            <input type="text"
-                                   x-model="officerSearch"
-                                   @focus="showDropdown = true"
-                                   @input="showDropdown = true"
-                                   placeholder="Type to search staff..."
-                                   class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            <button type="button" x-show="officerSearch" @click="clearOfficer()"
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
-                        <div x-show="showDropdown && filtered.length > 0"
-                             class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                            <template x-for="officer in filtered" :key="officer.id">
+                        <input type="text"
+                               x-model="officerSearch"
+                               @focus="showOfficerDropdown = true"
+                               @input="showOfficerDropdown = true"
+                               placeholder="Type to search staff..."
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <button type="button" x-show="officerSearch" @click="officerSearch = ''; form.loan_officer_id = ''"
+                                class="absolute inset-y-0 right-0 top-6 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        <div x-show="showOfficerDropdown && filteredOfficers().length > 0"
+                             class="absolute z-20 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                            <template x-for="officer in filteredOfficers()" :key="officer.id">
                                 <div @click="selectOfficer(officer)"
                                      class="px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer flex items-center gap-2">
                                     <span class="font-medium" x-text="officer.name"></span>
@@ -391,8 +369,8 @@
                                 </div>
                             </template>
                         </div>
-                        <div x-show="showDropdown && officerSearch && filtered.length === 0"
-                             class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg px-4 py-2 text-sm text-gray-500">
+                        <div x-show="showOfficerDropdown && officerSearch.length > 0 && filteredOfficers().length === 0"
+                             class="absolute z-20 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg px-4 py-2 text-sm text-gray-500">
                             No staff found
                         </div>
                     </div>
@@ -625,6 +603,9 @@ function clientCreate() {
         submitting: false,
         loanProducts: [],
         selectedProduct: null,
+        officerSearch: '',
+        showOfficerDropdown: false,
+        allOfficers: @json(($loanOfficers ?? collect())->map(fn($o) => ['id' => $o->id, 'name' => $o->name, 'role' => $o->role])),
         regions: [
             'Arusha', 'Dar es Salaam', 'Dodoma', 'Geita', 'Iringa', 'Kagera', 'Katavi',
             'Kigoma', 'Kilimanjaro', 'Lindi', 'Manyara', 'Mara', 'Mbeya', 'Morogoro',
@@ -633,6 +614,18 @@ function clientCreate() {
             'Tanga', 'Unguja North', 'Unguja South'
         ],
         districts: [],
+
+        filteredOfficers() {
+            if (!this.officerSearch) return this.allOfficers;
+            const q = this.officerSearch.toLowerCase();
+            return this.allOfficers.filter(o => o.name.toLowerCase().includes(q) || o.role.toLowerCase().includes(q));
+        },
+
+        selectOfficer(officer) {
+            this.form.loan_officer_id = officer.id;
+            this.officerSearch = officer.name + ' (' + officer.role + ')';
+            this.showOfficerDropdown = false;
+        },
 
         init() {
             this.loanProducts = (window.initialLoanProducts || @json($products ?? []));
@@ -750,44 +743,7 @@ function clientCreate() {
                         }
                         
                         // Handle save_and_new action
-                        if (actionValue === 'save_and_new') {
-                            // Reset form and show success message
-                            this.form = {
-                                first_name: '',
-                                last_name: '',
-                                date_of_birth: '',
-                                gender: '',
-                                id_number: '',
-                                marital_status: '',
-                                phone: '',
-                                email: '',
-                                region: '',
-                                district: '',
-                                ward: '',
-                                street: '',
-                                occupation: '',
-                                monthly_income: '',
-                                employer: '',
-                                employment_type: '',
-                                emergency_contact_name: '',
-                                emergency_contact_phone: '',
-                                emergency_contact_relationship: '',
-                                branch_id: '',
-                                loan_officer_id: '',
-                                status: 'active',
-                                initial_product_id: ''
-                            };
-                            this.selectedProduct = null;
-                            this.districts = [];
-                            if (this.$refs.photoInput) {
-                                this.$refs.photoInput.value = '';
-                            }
-                            alert('Borrower created successfully. You can now create another borrower.');
-                            window.scrollTo(0, 0);
-                            return;
-                        }
-                        
-                        // Default: redirect to client details or list
+                        // Always follow the server's redirect URL
                         window.location.href = data.redirect || '/clients';
                     } else {
                         window.location.href = '/clients';

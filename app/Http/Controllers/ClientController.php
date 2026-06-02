@@ -24,7 +24,11 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
+        $tenantId = auth()->user()->tenant_id ?? session('tenant_id');
         $query = Client::with('loans');
+        if ($tenantId) {
+            $query->where('tenant_id', $tenantId);
+        }
 
         // Search functionality
         if ($request->filled('search')) {
@@ -259,8 +263,16 @@ class ClientController extends Controller
 
         // If the request expects JSON (AJAX/fetch), return JSON with redirect URL
         if ($request->expectsJson()) {
+            $action = $request->input('action', 'save');
+            if ($action === 'save_and_new') {
+                return response()->json([
+                    'redirect' => route('clients.create'),
+                    'client_id' => $client->id,
+                    'action' => 'save_and_new',
+                ]);
+            }
             return response()->json([
-                'redirect' => route('clients.show', $client),
+                'redirect' => route('clients.index'),
                 'client_id' => $client->id,
             ]);
         }
@@ -273,7 +285,7 @@ class ClientController extends Controller
                             ->with('success', 'Borrower created successfully. You can now create another borrower.');
         }
 
-        return redirect()->route('clients.show', $client)
+        return redirect()->route('clients.index')
                         ->with('success', 'Borrower created successfully.');
     }
 
