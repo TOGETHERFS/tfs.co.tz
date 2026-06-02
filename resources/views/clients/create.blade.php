@@ -605,7 +605,7 @@ function clientCreate() {
         selectedProduct: null,
         officerSearch: '',
         showOfficerDropdown: false,
-        allOfficers: @json(($loanOfficers ?? collect())->map(fn($o) => ['id' => $o->id, 'name' => $o->name, 'role' => $o->role])),
+        allOfficers: @json(($loanOfficers ?? collect())->map(fn($o) => ['id' => $o->id, 'name' => $o->name, 'role' => $o->position ?: $o->role])),
         regions: [
             'Arusha', 'Dar es Salaam', 'Dodoma', 'Geita', 'Iringa', 'Kagera', 'Katavi',
             'Kigoma', 'Kilimanjaro', 'Lindi', 'Manyara', 'Mara', 'Mbeya', 'Morogoro',

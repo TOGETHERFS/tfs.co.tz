@@ -59,7 +59,7 @@ class ClientController extends Controller
      */
     public function create()
     {
-        $tenantId = session('tenant_id') ?? auth()->user()->tenant_id;
+        $tenantId = optional(auth()->user())->tenant_id ?? session('tenant_id');
         
         // Validate tenant context
         if (!$tenantId) {
@@ -85,19 +85,12 @@ class ClientController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Get loan officers (users with loan_officer role via column OR roles relationship)
-        $loanOfficerRoles = ['loan_officer', 'officer', 'manager', 'admin', 'credit_officer', 'gm'];
+        // Get all active staff for the tenant (no role filter — show everyone)
         $loanOfficers = User::where('tenant_id', $tenantId)
-            ->where(function ($query) use ($loanOfficerRoles) {
-                // Check legacy role column (case-insensitive)
-                $query->whereRaw('LOWER(role) IN (' . implode(',', array_fill(0, count($loanOfficerRoles), '?')) . ')', $loanOfficerRoles)
-                    // OR check roles relationship via pivot table
-                    ->orWhereHas('roles', function ($q) use ($loanOfficerRoles) {
-                        $q->whereIn('slug', $loanOfficerRoles);
-                    });
-            })
+            ->where('role', '!=', 'superadmin')
+            ->where('email', '!=', 'phidtechnology@gmail.com')
             ->orderBy('name')
-            ->get();
+            ->get(['id', 'name', 'role', 'position']);
 
         // Check for missing essential data and auto-repair if needed
         if ($branches->isEmpty() || $products->isEmpty()) {
