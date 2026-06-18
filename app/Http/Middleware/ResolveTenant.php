@@ -74,10 +74,27 @@ class ResolveTenant
     }
 
     /**
-     * Extract subdomain from host.
+     * Extract subdomain from host, correctly handling 2-level TLDs like .co.tz, .co.uk, .co.ke.
      */
     private function extractSubdomain(string $host): ?string
     {
+        // Strip port if present
+        $host = strtolower(explode(':', $host)[0]);
+
+        // Known 2-level TLDs — domains using these need 4 parts to have a subdomain
+        $twoLevelTlds = ['co.tz', 'co.uk', 'co.ke', 'co.za', 'com.au', 'org.uk', 'net.au', 'or.tz'];
+
+        foreach ($twoLevelTlds as $tld) {
+            if (str_ends_with($host, '.' . $tld)) {
+                // e.g. tfs.co.tz → base='tfs', no subdomain
+                // e.g. app.tfs.co.tz → subdomain='app'
+                $withoutTld = substr($host, 0, strlen($host) - strlen($tld) - 1);
+                $parts = explode('.', $withoutTld);
+                return count($parts) > 1 ? $parts[0] : null;
+            }
+        }
+
+        // Standard TLDs: subdomain.domain.tld = 3 parts
         $parts = explode('.', $host);
         if (count($parts) > 2) {
             return $parts[0];
