@@ -57,22 +57,25 @@ class TenantAccessGate
 
         // Check if user belongs to the current tenant (loose comparison to handle string/int mismatch)
         if ((int)$user->tenant_id !== (int)$sessionTenantId) {
-            // User doesn't belong to current tenant
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Access denied: tenant mismatch.'], 403);
+            }
             auth()->logout();
             session()->flush();
-            
             return redirect()->route('login')
                            ->with('error', 'Access denied. You do not have permission to access this tenant.');
         }
 
-        // Check if tenant is active
+        // Check if tenant is active — also allow 'trial' so users are never silently locked out
         $tenant = $user->tenant;
-        if (!$tenant || $tenant->status !== 'active') {
-            auth()->logout();
-            session()->flush();
-            
+        $allowedStatuses = ['active', 'trial', 'pending'];
+        if (!$tenant || !in_array($tenant->status, $allowedStatuses)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Tenant account is not active. Please contact support.'], 403);
+            }
+            // For regular page requests: redirect without logout so session/CSRF survive
             return redirect()->route('login')
-                           ->with('error', 'Tenant account is not active.');
+                           ->with('error', 'Tenant account is not active. Please contact support.');
         }
 
         // Skip subscription check for subscription-related routes to prevent redirect loops

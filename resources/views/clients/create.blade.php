@@ -749,7 +749,12 @@ function clientCreate() {
                         window.location.href = '/clients';
                     }
                 } else {
-                    if (response.status === 401 || response.status === 419) {
+                    if (response.status === 419) {
+                        this.errors = { general: ['Your session has expired. The page will refresh — please try again.'] };
+                        setTimeout(() => window.location.reload(), 2000);
+                        return;
+                    }
+                    if (response.status === 401) {
                         window.location.href = '/login';
                         return;
                     }
@@ -759,10 +764,10 @@ function clientCreate() {
                         if (data.errors) {
                             this.errors = data.errors;
                         } else {
-                            alert(data.message || 'An error occurred while creating the borrower');
+                            this.errors = { general: [data.message || 'An error occurred while creating the borrower'] };
                         }
                     } else {
-                        alert('An error occurred while creating the borrower');
+                        this.errors = { general: [`Server error (HTTP ${response.status}). Please try again.`] };
                     }
                 }
             } catch (error) {

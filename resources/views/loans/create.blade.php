@@ -1165,7 +1165,12 @@ function loanCreate() {
                     alert(message || 'Loan was created but no record ID was returned by the server.');
                     return;
                 } else {
-                    if (response.status === 401 || response.status === 419) {
+                    if (response.status === 419) {
+                        alert('Your session has expired. The page will refresh — please try again.');
+                        window.location.reload();
+                        return;
+                    }
+                    if (response.status === 401) {
                         window.location.href = '/login';
                         return;
                     }
