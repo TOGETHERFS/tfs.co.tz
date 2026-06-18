@@ -263,10 +263,14 @@ class UserDashboardController extends Controller
         // Get active sessions from last 12 hours
         $twelveHoursAgo = now()->subHours(12)->timestamp;
         
-        $sessions = DB::table('sessions')
-            ->where('last_activity', '>=', $twelveHoursAgo)
-            ->whereNotNull('user_id')
-            ->get();
+        try {
+            $sessions = DB::table('sessions')
+                ->where('last_activity', '>=', $twelveHoursAgo)
+                ->whereNotNull('user_id')
+                ->get();
+        } catch (\Exception $e) {
+            return collect([]);
+        }
 
         $onlineStaff = [];
         
