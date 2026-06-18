@@ -207,6 +207,12 @@ Route::middleware('auth')->group(function () {
     })->middleware('throttle:6,1')->name('verification.send');
 });
 
+// Web-accessible API endpoints (session auth) for frontend AJAX calls
+Route::middleware(['auth', 'resolve.tenant', 'tenant.access'])->group(function () {
+    Route::get('/api/loan-products', [\App\Http\Controllers\Api\LoanProductController::class, 'index'])
+        ->name('web.api.loan-products');
+});
+
 // Authenticated routes with tenant resolution
 Route::middleware(['auth', 'resolve.tenant', 'tenant.access'])->group(function () {
     
