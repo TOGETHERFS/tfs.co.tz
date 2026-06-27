@@ -555,6 +555,7 @@ Route::middleware(['auth', 'resolve.tenant', 'tenant.access'])->group(function (
     // Loan Management
     Route::prefix('loans')->name('loans.')->group(function () {
         Route::get('/', [LoanController::class, 'index'])->name('index');
+        Route::get('/stats', [LoanController::class, 'statsJson'])->name('stats');
         Route::get('/create', [LoanController::class, 'create'])->name('create');
         Route::post('/', [LoanController::class, 'store'])->name('store');
         Route::get('/import', [LoanController::class, 'importForm'])->name('import');

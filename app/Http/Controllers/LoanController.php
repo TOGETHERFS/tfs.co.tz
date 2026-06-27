@@ -65,7 +65,35 @@ class LoanController extends Controller
         $loan_products = LoanProduct::where('is_active', true)->orderBy('name')->get(['id', 'name']);
         $recent_loans  = Loan::with(['client', 'product'])->latest()->take(5)->get();
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'data'     => $loans,
+                'stats'    => $stats,
+                'summary'  => [
+                    'total_count'       => $loans->total(),
+                    'total_principal'   => Loan::sum('principal'),
+                ],
+            ]);
+        }
+
         return view('loans.index', compact('recent_loans', 'stats', 'loans', 'loan_products'));
+    }
+
+    public function statsJson(Request $request)
+    {
+        $activeIds = Loan::whereIn('status', ['disbursed', 'active'])->pluck('id');
+        $totalActiveToPay = (float) Loan::whereIn('status', ['disbursed', 'active'])->sum('total_amount');
+        $totalRepaid      = (float) Repayment::whereIn('loan_id', $activeIds)->sum('amount');
+
+        return response()->json([
+            'total_loans'       => Loan::count(),
+            'active_loans'      => Loan::whereIn('status', ['disbursed', 'active'])->count(),
+            'pending_loans'     => Loan::where('status', 'pending')->count(),
+            'total_outstanding' => $totalActiveToPay - $totalRepaid,
+            'total_disbursed'   => Loan::whereIn('status', ['disbursed', 'active', 'completed'])->sum('principal'),
+            'completed_loans'   => Loan::where('status', 'completed')->count(),
+            'overdue_loans'     => Loan::overdue()->count(),
+        ]);
     }
 
     public function create()

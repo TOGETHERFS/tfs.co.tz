@@ -349,7 +349,7 @@ class WorkflowEngine
         } else {
             // Check if user has disbursement permission
             if (!$disburser->hasPermission('loan.disburse') && !$disburser->isSuperAdmin()) {
-                $allowedRoles = ['admin', 'teller', 'accountant', 'cashier'];
+                $allowedRoles = ['admin', 'teller', 'accountant', 'cashier', 'cso', 'manager', 'gm', 'loan_officer'];
                 if (!in_array($disburser->role, $allowedRoles)) {
                     throw new Exception('You do not have permission to disburse loans.');
                 }

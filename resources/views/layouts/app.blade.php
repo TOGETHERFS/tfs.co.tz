@@ -157,7 +157,7 @@
             
             // Check if user has disbursement permission via RBAC roles or role column
             $hasDisburseRole = false;
-            $disburseRoles = ['admin', 'administrator', 'teller', 'accountant', 'cashier', 'loan_officer', 'manager', 'gm'];
+            $disburseRoles = ['admin', 'administrator', 'teller', 'accountant', 'cashier', 'loan_officer', 'manager', 'gm', 'cso'];
             
             // Check role column (case-insensitive)
             if (in_array(strtolower(auth()->user()->role), $disburseRoles)) {

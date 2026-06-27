@@ -726,7 +726,7 @@ function loansIndex(serverStats = {}, serverLoans = {}, serverProducts = []) {
         async loadStats() {
             // Re-fetch stats only after mutations (approve/disburse/delete)
             try {
-                const response = await fetch('/api/loans/stats', this.fetchOptions('GET'));
+                const response = await fetch('/loans/stats', this.fetchOptions('GET'));
                 const raw = await response.json();
                 const payload = raw?.data ?? raw;
                 if (payload && typeof payload === 'object') this.stats = payload;
@@ -747,7 +747,7 @@ function loansIndex(serverStats = {}, serverLoans = {}, serverProducts = []) {
                 if (this.filters.period)     params.set('period',     this.filters.period);
                 if (this.filters.date_from)  params.set('date_from',  this.filters.date_from);
                 if (this.filters.date_to)    params.set('date_to',    this.filters.date_to);
-                const response = await fetch(`/api/loans?${params.toString()}`, this.fetchOptions('GET'));
+                const response = await fetch(`/loans?${params.toString()}`, this.fetchOptions('GET'));
                 const contentType = response.headers.get('content-type') || '';
                 if (!contentType.includes('application/json')) {
                     throw new Error('Session expired. Please refresh the page.');
@@ -793,7 +793,7 @@ function loansIndex(serverStats = {}, serverLoans = {}, serverProducts = []) {
         },
         async approveLoan(id) {
             try {
-                const response = await fetch(`/api/loans/${id}/approve`, this.fetchOptions('PATCH', JSON.stringify({}))); 
+                const response = await fetch(`/loans/${id}/approve`, this.fetchOptions('PATCH', JSON.stringify({}))); 
                 if (!response.ok) throw new Error('Approve failed');
                 await this.loadStats();
                 await this.loadLoans(this.pagination.current_page);
@@ -813,7 +813,7 @@ function loansIndex(serverStats = {}, serverLoans = {}, serverProducts = []) {
                     disbursed_at: this.disburseModal.disbursed_at,
                     first_payment_date: this.disburseModal.first_payment_date,
                 };
-                const response = await fetch(`/api/loans/${this.disburseModal.loanId}/disburse`, this.fetchOptions('PATCH', payload));
+                const response = await fetch(`/loans/${this.disburseModal.loanId}/disburse`, this.fetchOptions('PATCH', payload));
                 const data = await response.json();
                 if (!response.ok) {
                     alert(data.message || 'Failed to disburse loan');
@@ -836,7 +836,7 @@ function loansIndex(serverStats = {}, serverLoans = {}, serverProducts = []) {
         },
         async rejectLoan(id) {
             try {
-                const response = await fetch(`/api/loans/${id}/reject`, this.fetchOptions('PATCH', JSON.stringify({}))); 
+                const response = await fetch(`/loans/${id}/reject`, this.fetchOptions('PATCH', JSON.stringify({}))); 
                 if (!response.ok) throw new Error('Reject failed');
                 await this.loadStats();
                 await this.loadLoans(this.pagination.current_page);
@@ -879,7 +879,7 @@ function loansIndex(serverStats = {}, serverLoans = {}, serverProducts = []) {
         },
         async loadHistory(loanId) {
             try {
-                const response = await fetch(`/api/loans/${loanId}/approvals`, this.fetchOptions('GET'));
+                const response = await fetch(`/loans/${loanId}/approvals`, this.fetchOptions('GET'));
                 const raw = await response.json();
                 const records = raw?.data ?? raw;
                 this.historyModal.records = Array.isArray(records) ? records : [];

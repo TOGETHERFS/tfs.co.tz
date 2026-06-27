@@ -44,7 +44,7 @@ class LoanPolicy
         }
 
         // Default: allow teller, accountant, cashier, loan_officer by role
-        $defaultDisburseRoles = ['teller', 'accountant', 'cashier', 'loan_officer', 'manager', 'gm'];
+        $defaultDisburseRoles = ['teller', 'accountant', 'cashier', 'loan_officer', 'manager', 'gm', 'cso'];
         foreach ($defaultDisburseRoles as $roleSlug) {
             if ($user->hasRole($roleSlug) || $user->role === $roleSlug) {
                 return true;
