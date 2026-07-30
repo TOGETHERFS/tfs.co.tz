@@ -328,7 +328,29 @@ class WorkflowEngine
         $state = $loan->workflowState;
         
         if (!$state) {
-            throw new Exception('Loan has no active workflow.');
+            // Legacy/manually approved loans have no workflow state.
+            // If the loan is already approved, create a bypass state so it can be disbursed.
+            if ($loan->status !== 'approved') {
+                throw new Exception('Loan has no active workflow and is not in approved status.');
+            }
+
+            $workflow = WorkflowConfig::getWorkflowForTenant($loan->tenant_id);
+            if (!$workflow) {
+                throw new Exception('No active workflow configuration found. Please contact your administrator.');
+            }
+
+            $state = LoanWorkflowState::create([
+                'loan_id'            => $loan->id,
+                'workflow_config_id' => $workflow->id,
+                'current_step_id'    => null,
+                'status'             => LoanWorkflowState::STATUS_APPROVED,
+                'completed_steps'    => 0,
+                'total_steps'        => 0,
+                'is_locked'          => true,
+                'started_at'         => now(),
+            ]);
+
+            $loan->setRelation('workflowState', $state);
         }
 
         // Check if ready for disbursement

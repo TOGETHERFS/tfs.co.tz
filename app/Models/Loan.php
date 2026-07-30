@@ -125,6 +125,14 @@ class Loan extends BaseModel
     }
 
     /**
+     * Get the workflow state for the loan.
+     */
+    public function workflowState()
+    {
+        return $this->hasOne(LoanWorkflowState::class);
+    }
+
+    /**
      * Scope a query to only include active loans.
      */
     public function scopeActive($query)
