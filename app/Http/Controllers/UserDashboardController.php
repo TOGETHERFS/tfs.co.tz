@@ -162,6 +162,27 @@ class UserDashboardController extends Controller
                 });
             });
 
+        // TODAY'S COLLECTION STATS
+        $today_all_schedules = LoanSchedule::with(['loan.client'])
+            ->where('due_date', $todayDate)
+            ->whereHas('loan', function ($q) {
+                $q->whereIn('status', ['disbursed', 'active', 'partially_paid']);
+            })->get();
+
+        $today_expected    = (float) $today_all_schedules->sum(fn($s) => $s->total_amount);
+        $today_collected   = (float) Repayment::whereDate('payment_date', $todayDate)->sum('amount');
+        $today_not_collected = max(0, $today_expected - $today_collected);
+        $today_collection_rate = $today_expected > 0
+            ? round(($today_collected / $today_expected) * 100, 1)
+            : 0.0;
+
+        // TODAY paid vs unpaid (for the two summary cards)
+        $today_paid_loans = $today_all_schedules->filter(fn($s) => $s->status === 'paid')->count();
+        $today_unpaid_loans = $today_all_schedules->filter(fn($s) => in_array($s->status, ['pending', 'partial']))->count();
+
+        // INTEREST earned = total_repayable - total_principal_disbursed (all active+completed loans)
+        $total_interest_disbursed = max(0, (float)$stats['total_repayable'] - (float)$stats['total_principal_disbursed']);
+
         // Recent entities
         $recent_clients = Client::latest()->take(5)->get();
         $recent_loans = Loan::with('client')->latest()->take(5)->get();
@@ -251,7 +272,14 @@ class UserDashboardController extends Controller
             'trialEndsAt',
             'trialMinutesLeft',
             'isTrialActive',
-            'online_staff'
+            'online_staff',
+            'today_expected',
+            'today_collected',
+            'today_not_collected',
+            'today_collection_rate',
+            'today_paid_loans',
+            'today_unpaid_loans',
+            'total_interest_disbursed'
         ));
     }
 

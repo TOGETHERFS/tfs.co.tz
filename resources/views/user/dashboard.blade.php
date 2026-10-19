@@ -141,6 +141,136 @@
 
 
 
+        <!-- Disbursement Summary -->
+        <div class="mb-6">
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-5 py-3 border-b border-gray-100 bg-gray-50">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">{{ __('messages.total_disbursed') ?? 'Jumla Mikopo Iliyotolewa' }}</p>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    <!-- Principal -->
+                    <div class="flex items-center px-5 py-3.5">
+                        <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mkopo Uliotolewa</p>
+                            <p class="text-xl font-bold text-blue-600">TZS {{ number_format($stats['total_principal_disbursed'] ?? 0, 0) }}</p>
+                            <p class="text-xs text-gray-400">Mkopo halisi (bila riba)</p>
+                        </div>
+                    </div>
+                    <!-- Interest -->
+                    <div class="flex items-center px-5 py-3.5">
+                        <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Riba Iliyotolewa</p>
+                            <p class="text-xl font-bold text-amber-600">TZS {{ number_format($total_interest_disbursed ?? 0, 0) }}</p>
+                            <p class="text-xs text-gray-400">Jumla riba iliyopangwa</p>
+                        </div>
+                    </div>
+                    <!-- Total -->
+                    <div class="flex items-center px-5 py-3.5 bg-green-50">
+                        <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Jumla Iliyotolewa + Riba</p>
+                            <p class="text-xl font-bold text-green-600">TZS {{ number_format($stats['total_repayable'] ?? 0, 0) }}</p>
+                            <p class="text-xs text-gray-400">Mkopo + Riba — mkopo wote</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Collection Stats -->
+        <div class="mb-6">
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-5 py-3 border-b border-gray-100 bg-gray-50">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Hali ya Leo — {{ now()->format('d M Y') }}</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
+                    <div class="px-5 py-4 text-center">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Inatakiwa Kukusanywa</p>
+                        <p class="text-xl font-bold text-gray-900">TZS {{ number_format($today_expected ?? 0, 0) }}</p>
+                    </div>
+                    <div class="px-5 py-4 text-center">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Imekusanywa</p>
+                        <p class="text-xl font-bold text-green-600">TZS {{ number_format($today_collected ?? 0, 0) }}</p>
+                    </div>
+                    <div class="px-5 py-4 text-center">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Bado Kukusanywa</p>
+                        <p class="text-xl font-bold text-red-500">TZS {{ number_format($today_not_collected ?? 0, 0) }}</p>
+                    </div>
+                    <div class="px-5 py-4 text-center">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Kiwango cha Ukusanyaji</p>
+                        <p class="text-xl font-bold {{ ($today_collection_rate ?? 0) >= 80 ? 'text-green-600' : (($today_collection_rate ?? 0) >= 50 ? 'text-amber-500' : 'text-red-500') }}">
+                            {{ number_format($today_collection_rate ?? 0, 1) }}%
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overdue Loans -->
+        @if(($overdue_loans ?? collect())->count() > 0)
+        <div class="mb-6">
+            <div class="bg-red-50 border border-red-200 rounded-xl overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-red-200">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                            <p class="text-sm font-bold text-red-800">Mikopo Iliyochelewa</p>
+                        </div>
+                        <p class="text-xs text-red-600 mt-0.5">{{ ($overdue_loans ?? collect())->count() }} mikopo — TZS {{ number_format(($overdue_loans ?? collect())->sum('total_overdue_amount'), 0) }} inayodaiwa</p>
+                    </div>
+                    <a href="{{ route('loans.index', ['status' => 'overdue']) }}" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors">
+                        Tazama Wote &rarr;
+                    </a>
+                </div>
+                <div class="divide-y divide-red-100">
+                    @foreach(($overdue_loans ?? collect())->take(5) as $loan)
+                    @php
+                        $oldestOverdue = $loan->schedules->sortBy('due_date')->first();
+                        $daysOverdue = $oldestOverdue ? now()->diffInDays(\Carbon\Carbon::parse($oldestOverdue->due_date)) : 0;
+                    @endphp
+                    <div class="flex items-center justify-between px-5 py-2.5">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm font-semibold text-red-900 uppercase">{{ $loan->client->first_name ?? '' }} {{ $loan->client->last_name ?? '' }}</span>
+                            <span class="inline-flex px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700 rounded-full">siku {{ $daysOverdue }}</span>
+                        </div>
+                        <span class="text-sm font-bold text-red-700">TZS {{ number_format($loan->total_overdue_amount ?? 0, 0) }}</span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Today: Paid vs Unpaid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-green-50 border border-green-200 rounded-xl p-5">
+                <p class="text-sm font-bold text-green-800">Waliolipa Leo ({{ $today_paid_loans ?? 0 }})</p>
+                <p class="text-xs text-green-600 mb-2">Jumla: TZS {{ number_format($today_collected ?? 0, 0) }}</p>
+                @if(($today_paid_loans ?? 0) == 0)
+                <p class="text-sm text-green-600">Hakuna malipo yaliyopokelewa leo bado.</p>
+                @else
+                <p class="text-sm text-green-700 font-medium">Malipo {{ $today_paid_loans }} yamepokelewa leo.</p>
+                @endif
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
+                <p class="text-sm font-bold text-amber-800">Ambao Hawajalipa Leo ({{ $today_unpaid_loans ?? 0 }})</p>
+                <p class="text-xs text-amber-600 mb-2">Jumla: TZS {{ number_format($today_not_collected ?? 0, 0) }}</p>
+                @if(($today_unpaid_loans ?? 0) == 0)
+                <p class="text-sm text-amber-700">Wote wamelipa leo. Hongera! 🎉</p>
+                @else
+                <p class="text-sm text-amber-700">Wateja {{ $today_unpaid_loans }} bado hawajalipa leo.</p>
+                @endif
+            </div>
+        </div>
+
         <!-- Today's Repayments -->
         @if(($today_repayments ?? collect())->count() > 0)
         <div class="mb-6">
