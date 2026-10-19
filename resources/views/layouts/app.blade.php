@@ -198,5 +198,105 @@
     </script>
 
     @stack('scripts')
+
+    @auth
+    <!-- Idle Session Timeout: warn at 28 min, logout at 30 min -->
+    <div id="idle-warning-modal"
+         style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;"
+         class="flex">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+            <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Session Expiring Soon</h3>
+            <p class="text-sm text-gray-500 mb-1">You have been idle. You will be logged out in</p>
+            <p class="text-3xl font-bold text-amber-600 mb-5" id="idle-countdown">2:00</p>
+            <button onclick="window.idleTimer.reset()"
+                    class="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors">
+                Stay Logged In
+            </button>
+        </div>
+    </div>
+
+    <script>
+    window.idleTimer = (function() {
+        const IDLE_LIMIT    = 30 * 60;   // 30 minutes in seconds
+        const WARN_BEFORE   = 2  * 60;   // show warning 2 minutes before
+        const WARN_AT       = IDLE_LIMIT - WARN_BEFORE;
+
+        let idleSeconds  = 0;
+        let warnInterval = null;
+        let warnSecondsLeft = WARN_BEFORE;
+        const modal      = document.getElementById('idle-warning-modal');
+        const countdownEl= document.getElementById('idle-countdown');
+
+        function fmt(s) {
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            return m + ':' + String(sec).padStart(2, '0');
+        }
+
+        function showWarning() {
+            warnSecondsLeft = WARN_BEFORE;
+            modal.style.display = 'flex';
+            warnInterval = setInterval(function() {
+                warnSecondsLeft--;
+                countdownEl.textContent = fmt(warnSecondsLeft);
+                if (warnSecondsLeft <= 0) {
+                    doLogout();
+                }
+            }, 1000);
+        }
+
+        function hideWarning() {
+            modal.style.display = 'none';
+            clearInterval(warnInterval);
+        }
+
+        function doLogout() {
+            hideWarning();
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("logout") }}';
+            const csrf = document.createElement('input');
+            csrf.type  = 'hidden';
+            csrf.name  = '_token';
+            csrf.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function reset() {
+            idleSeconds = 0;
+            hideWarning();
+        }
+
+        // Tick every second
+        setInterval(function() {
+            idleSeconds++;
+            if (idleSeconds === WARN_AT && modal.style.display === 'none') {
+                showWarning();
+            }
+            if (idleSeconds >= IDLE_LIMIT) {
+                doLogout();
+            }
+        }, 1000);
+
+        // Reset on any user activity
+        ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(function(evt) {
+            document.addEventListener(evt, function() {
+                if (modal.style.display === 'none') {
+                    idleSeconds = 0;
+                }
+            }, { passive: true });
+        });
+
+        return { reset: reset };
+    })();
+    </script>
+    @endauth
 </body>
 </html>
