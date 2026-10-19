@@ -365,14 +365,6 @@ class Loan extends BaseModel
     }
 
     /**
-     * Get the workflow state for this loan.
-     */
-    public function workflowState()
-    {
-        return $this->hasOne(\App\Models\LoanWorkflowState::class);
-    }
-
-    /**
      * Get workflow logs for this loan.
      */
     public function workflowLogs()
