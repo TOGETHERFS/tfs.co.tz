@@ -30,13 +30,31 @@
     }
 @endphp
 <nav class="h-full flex flex-col" x-data="{ activeDropdown: '{{ $initialDropdown }}' }">
+    <!-- Sidebar Header -->
+    <div class="px-4 py-4 border-b border-gray-100 flex-shrink-0">
+        <div class="flex items-center space-x-3">
+            @if(!empty($generalSettings['company_logo']))
+                <img src="{{ asset('storage/' . $generalSettings['company_logo']) }}" alt="Logo" class="h-8 w-8 rounded-lg object-cover">
+            @else
+                <div class="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                    </svg>
+                </div>
+            @endif
+            <div class="min-w-0">
+                <p class="text-sm font-bold text-gray-900 truncate">{{ $generalSettings['company_name'] ?? config('app.name', 'TFS LMS') }}</p>
+                <p class="text-xs text-blue-600 font-medium">Management System</p>
+            </div>
+        </div>
+    </div>
     <!-- Scrollable Navigation Content -->
     <div class="flex-1 overflow-y-auto">
-        <div class="px-4 py-6 space-y-2">
+        <div class="px-4 py-4 space-y-1">
         
-        <!-- Dashboard - Blue Theme -->
+        <!-- Dashboard -->
         <a href="{{ safeRoute('user.dashboard') }}" 
-           class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('user.dashboard') ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
+           class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('user.dashboard') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
             <div class="p-1.5 rounded-lg {{ request()->routeIs('user.dashboard') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
@@ -45,12 +63,12 @@
             {{ __('messages.dashboard') }}
         </a>
 
-        <!-- Borrowers - Indigo Theme -->
+        <!-- Borrowers -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'clients' ? null : 'clients'" 
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('clients.*') || request()->routeIs('groups.*') ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-md' : 'text-gray-700 hover:bg-indigo-50' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('clients.*') || request()->routeIs('groups.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('clients.*') || request()->routeIs('groups.*') ? 'bg-white/20' : 'bg-indigo-100 text-indigo-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('clients.*') || request()->routeIs('groups.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
@@ -61,21 +79,21 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'clients'" x-transition class="ml-8 space-y-1 border-l-2 border-indigo-200 pl-4">
-                <a href="{{ safeRoute('clients.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('clients.index') ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50' }}">{{ __('messages.all_borrowers') }}</a>
-                <a href="{{ safeRoute('clients.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('clients.create') ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50' }}">{{ __('messages.add_new_borrower') }}</a>
-                <a href="{{ safeRoute('clients.import') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('clients.import') ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50' }}">{{ __('messages.import_borrowers') }}</a>
-                <a href="{{ safeRoute('groups.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('groups.index') ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50' }}">{{ __('messages.view_groups') }}</a>
-                <a href="{{ safeRoute('groups.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('groups.create') ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50' }}">{{ __('messages.add_group') }}</a>
+            <div x-show="activeDropdown === 'clients'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
+                <a href="{{ safeRoute('clients.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('clients.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_borrowers') }}</a>
+                <a href="{{ safeRoute('clients.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('clients.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.add_new_borrower') }}</a>
+                <a href="{{ safeRoute('clients.import') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('clients.import') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.import_borrowers') }}</a>
+                <a href="{{ safeRoute('groups.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('groups.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.view_groups') }}</a>
+                <a href="{{ safeRoute('groups.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('groups.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.add_group') }}</a>
             </div>
         </div>
 
-        <!-- Loans - Green Theme -->
+        <!-- Loans -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'loans' ? null : 'loans'" 
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('loans.*') || request()->routeIs('loan-products.*') ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'text-gray-700 hover:bg-green-50' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('loans.*') || request()->routeIs('loan-products.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('loans.*') || request()->routeIs('loan-products.*') ? 'bg-white bg-opacity-20' : 'bg-green-100 text-green-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('loans.*') || request()->routeIs('loan-products.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -86,20 +104,20 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'loans'" x-transition class="ml-8 space-y-1 border-l-2 border-green-200 pl-4">
-                <a href="{{ safeRoute('loans.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('loans.index') ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-600 hover:text-green-600 hover:bg-green-50' }}">{{ __('messages.all_loans') }}</a>
-                <a href="{{ safeRoute('loans.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('loans.create') ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-600 hover:text-green-600 hover:bg-green-50' }}">{{ __('messages.new_loan_application') }}</a>
-                <a href="{{ safeRoute('loan-products.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('loan-products.*') ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-600 hover:text-green-600 hover:bg-green-50' }}">{{ __('messages.loan_products') }}</a>
-                <a href="{{ safeRoute('loans.import') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('loans.import') ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-600 hover:text-green-600 hover:bg-green-50' }}">{{ __('messages.import_loans') }}</a>
+            <div x-show="activeDropdown === 'loans'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
+                <a href="{{ safeRoute('loans.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('loans.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_loans') }}</a>
+                <a href="{{ safeRoute('loans.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('loans.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.new_loan_application') }}</a>
+                <a href="{{ safeRoute('loan-products.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('loan-products.*') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.loan_products') }}</a>
+                <a href="{{ safeRoute('loans.import') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('loans.import') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.import_loans') }}</a>
             </div>
         </div>
 
-        <!-- Repayments - Orange/Amber Theme -->
+        <!-- Repayments -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'repayments' ? null : 'repayments'" 
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('repayments.*') ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md' : 'text-gray-700 hover:bg-amber-50' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('repayments.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('repayments.*') ? 'bg-white/20' : 'bg-amber-100 text-amber-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('repayments.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
@@ -110,11 +128,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'repayments'" x-transition class="ml-8 space-y-1 border-l-2 border-amber-200 pl-4">
-                <a href="{{ safeRoute('repayments.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('repayments.index') ? 'bg-amber-100 text-amber-700 font-medium' : 'text-gray-600 hover:text-amber-600 hover:bg-amber-50' }}">{{ __('messages.all_repayments') }}</a>
-                <a href="{{ safeRoute('repayments.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('repayments.create') ? 'bg-amber-100 text-amber-700 font-medium' : 'text-gray-600 hover:text-amber-600 hover:bg-amber-50' }}">{{ __('messages.record_repayment') }}</a>
+            <div x-show="activeDropdown === 'repayments'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
+                <a href="{{ safeRoute('repayments.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('repayments.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_repayments') }}</a>
+                <a href="{{ safeRoute('repayments.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('repayments.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.record_repayment') }}</a>
                 @if(Route::has('repayments.history'))
-                <a href="{{ safeRoute('repayments.history') }}" class="flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('repayments.history') ? 'bg-amber-100 text-amber-700 font-medium' : 'text-gray-600 hover:text-amber-600 hover:bg-amber-50' }}">
+                <a href="{{ safeRoute('repayments.history') }}" class="flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('repayments.history') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
@@ -125,14 +143,14 @@
         </div>
 
 
-        <!-- Reports - Cyan/Teal Theme -->
+        <!-- Reports -->
         @php $reportsActive = request()->routeIs('reports.*'); @endphp
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'reports' ? null : 'reports'"
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ $reportsActive ? 'bg-gradient-to-r from-cyan-500 to-teal-600 text-white shadow-md' : 'text-gray-800 hover:bg-cyan-50 hover:text-cyan-700' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ $reportsActive ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ $reportsActive ? 'bg-white bg-opacity-25' : 'bg-cyan-100 text-cyan-600' }} mr-3 flex-shrink-0">
-                        <svg class="h-5 w-5 {{ $reportsActive ? 'text-white' : 'text-cyan-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="p-1.5 rounded-lg {{ $reportsActive ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3 flex-shrink-0">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                     </div>
@@ -142,31 +160,31 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'reports'" x-transition class="ml-8 space-y-1 border-l-2 border-cyan-200 pl-4">
+            <div x-show="activeDropdown === 'reports'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
                 @if(Route::has('reports.index'))
-                <a href="{{ safeRoute('reports.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.index') ? 'bg-cyan-100 text-cyan-700 font-medium' : 'text-gray-600 hover:text-cyan-600 hover:bg-cyan-50' }}">{{ __('messages.overview') }}</a>
+                <a href="{{ safeRoute('reports.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.overview') }}</a>
                 @endif
                 @if(Route::has('reports.loan-portfolio'))
-                <a href="{{ safeRoute('reports.loan-portfolio') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.loan-portfolio') ? 'bg-cyan-100 text-cyan-700 font-medium' : 'text-gray-600 hover:text-cyan-600 hover:bg-cyan-50' }}">{{ __('messages.loan_portfolio') }}</a>
+                <a href="{{ safeRoute('reports.loan-portfolio') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.loan-portfolio') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.loan_portfolio') }}</a>
                 @endif
                 @if(Route::has('reports.arrears-aging'))
-                <a href="{{ safeRoute('reports.arrears-aging') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.arrears-aging') ? 'bg-cyan-100 text-cyan-700 font-medium' : 'text-gray-600 hover:text-cyan-600 hover:bg-cyan-50' }}">{{ __('messages.arrears_aging') }}</a>
+                <a href="{{ safeRoute('reports.arrears-aging') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.arrears-aging') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.arrears_aging') }}</a>
                 @endif
                 @if(Route::has('reports.profit-loss'))
-                <a href="{{ safeRoute('reports.profit-loss') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.profit-loss') ? 'bg-cyan-100 text-cyan-700 font-medium' : 'text-gray-600 hover:text-cyan-600 hover:bg-cyan-50' }}">{{ __('messages.profit_loss') }}</a>
+                <a href="{{ safeRoute('reports.profit-loss') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.profit-loss') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.profit_loss') }}</a>
                 @endif
                 @if(Route::has('reports.collections'))
-                <a href="{{ safeRoute('reports.collections') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.collections') ? 'bg-cyan-100 text-cyan-700 font-medium' : 'text-gray-600 hover:text-cyan-600 hover:bg-cyan-50' }}">{{ __('messages.collections') }}</a>
+                <a href="{{ safeRoute('reports.collections') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.collections') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.collections') }}</a>
                 @endif
             </div>
         </div>
 
-        <!-- Accounts - Violet/Purple Theme -->
+        <!-- Accounts -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'accounting' ? null : 'accounting'"
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('accounting.*') ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md' : 'text-gray-700 hover:bg-violet-50' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('accounting.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('accounting.*') ? 'bg-white/20' : 'bg-violet-100 text-violet-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('accounting.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
@@ -177,37 +195,37 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'accounting'" x-transition class="ml-8 space-y-1 border-l-2 border-violet-200 pl-4">
+            <div x-show="activeDropdown === 'accounting'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
 
                 {{-- Chart of Accounts --}}
                 <a href="{{ safeRoute('accounting.chart-of-accounts.index') }}"
-                   class="block px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') ? 'bg-violet-100 text-violet-700 font-medium' : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50' }}">
+                   class="block px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     {{ __('messages.chart_of_accounts') }}
                 </a>
                 {{-- COA sub-links --}}
-                <div class="ml-3 space-y-0.5 border-l border-violet-100 pl-3">
+                <div class="ml-3 space-y-0.5 border-l border-blue-100 pl-3">
                     <a href="{{ safeRoute('accounting.chart-of-accounts.index', ['type' => 'asset']) }}"
-                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'asset' ? 'text-violet-700 font-semibold bg-violet-50' : 'text-gray-500 hover:text-violet-600 hover:bg-violet-50' }}">
+                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'asset' ? 'text-blue-700 font-semibold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50' }}">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0"></span>
                         {{ __('messages.acc_assets') }}
                     </a>
                     <a href="{{ safeRoute('accounting.chart-of-accounts.index', ['type' => 'liability']) }}"
-                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'liability' ? 'text-violet-700 font-semibold bg-violet-50' : 'text-gray-500 hover:text-violet-600 hover:bg-violet-50' }}">
+                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'liability' ? 'text-blue-700 font-semibold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50' }}">
                         <span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>
                         {{ __('messages.acc_liabilities') }}
                     </a>
                     <a href="{{ safeRoute('accounting.chart-of-accounts.index', ['type' => 'equity']) }}"
-                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'equity' ? 'text-violet-700 font-semibold bg-violet-50' : 'text-gray-500 hover:text-violet-600 hover:bg-violet-50' }}">
+                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'equity' ? 'text-blue-700 font-semibold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50' }}">
                         <span class="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0"></span>
                         {{ __('messages.acc_equity') }}
                     </a>
                     <a href="{{ safeRoute('accounting.chart-of-accounts.index', ['type' => 'income']) }}"
-                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'income' ? 'text-violet-700 font-semibold bg-violet-50' : 'text-gray-500 hover:text-violet-600 hover:bg-violet-50' }}">
+                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'income' ? 'text-blue-700 font-semibold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50' }}">
                         <span class="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0"></span>
                         {{ __('messages.acc_revenue') }}
                     </a>
                     <a href="{{ safeRoute('accounting.chart-of-accounts.index', ['type' => 'expense']) }}"
-                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'expense' ? 'text-violet-700 font-semibold bg-violet-50' : 'text-gray-500 hover:text-violet-600 hover:bg-violet-50' }}">
+                       class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors {{ request()->routeIs('accounting.chart-of-accounts.*') && request()->get('type') === 'expense' ? 'text-blue-700 font-semibold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50' }}">
                         <span class="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0"></span>
                         {{ __('messages.acc_expenses') }}
                     </a>
@@ -215,37 +233,37 @@
 
                 {{-- Journal Entries --}}
                 <a href="{{ safeRoute('accounting.journal-entries.index') }}"
-                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.journal-entries.*') ? 'bg-violet-100 text-violet-700 font-medium' : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50' }}">
+                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.journal-entries.*') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     {{ __('messages.journal_entries') }}
                 </a>
 
                 {{-- Expenses --}}
                 <a href="{{ safeRoute('accounting.expenses.index') }}"
-                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.expenses.*') ? 'bg-violet-100 text-violet-700 font-medium' : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50' }}">
+                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.expenses.*') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     {{ __('messages.acc_expenses') }}
                 </a>
 
                 {{-- Profit & Loss --}}
                 <a href="{{ safeRoute('accounting.reports.income-statement') }}"
-                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.reports.income-statement') ? 'bg-violet-100 text-violet-700 font-medium' : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50' }}">
+                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.reports.income-statement') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     {{ __('messages.acc_profit_loss') }}
                 </a>
 
                 {{-- Balance Sheet --}}
                 <a href="{{ safeRoute('accounting.reports.balance-sheet') }}"
-                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.reports.balance-sheet') ? 'bg-violet-100 text-violet-700 font-medium' : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50' }}">
+                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.reports.balance-sheet') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     {{ __('messages.balance_sheet') }}
                 </a>
 
                 {{-- Cash Flow --}}
                 <a href="{{ safeRoute('accounting.reports.cash-flow') }}"
-                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.reports.cash-flow') ? 'bg-violet-100 text-violet-700 font-medium' : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50' }}">
+                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.reports.cash-flow') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     {{ __('messages.acc_cash_flow') }}
                 </a>
 
                 {{-- Books of Accounts --}}
                 <a href="{{ safeRoute('accounting.reports.books-of-accounts') }}"
-                   class="flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.reports.books-of-accounts') ? 'bg-violet-100 text-violet-700 font-medium' : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50' }}">
+                   class="flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('accounting.reports.books-of-accounts') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
@@ -255,12 +273,12 @@
             </div>
         </div>
 
-        <!-- Messages - Yellow/Amber Theme -->
+        <!-- Messages -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'messages' ? null : 'messages'" 
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('messages.*') ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md' : 'text-gray-700 hover:bg-yellow-50' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('messages.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('messages.*') ? 'bg-white/20' : 'bg-yellow-100 text-yellow-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('messages.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                         </svg>
@@ -271,20 +289,20 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'messages'" x-transition class="ml-8 space-y-1 border-l-2 border-yellow-200 pl-4">
-                <a href="{{ safeRoute('messages.sender-ids') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.sender-ids') || request()->routeIs('messages.request-sender-id') ? 'bg-yellow-100 text-yellow-700 font-medium' : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50' }}">Apply Sender ID</a>
-                <a href="{{ safeRoute('messages.compose') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.compose') ? 'bg-yellow-100 text-yellow-700 font-medium' : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50' }}">Send SMS</a>
-                <a href="{{ safeRoute('messages.history') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.history') ? 'bg-yellow-100 text-yellow-700 font-medium' : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50' }}">Message History</a>
-                <a href="{{ safeRoute('messages.buy') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.buy') ? 'bg-yellow-100 text-yellow-700 font-medium' : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50' }}">{{ __('messages.buy_sms_credits') }}</a>
+            <div x-show="activeDropdown === 'messages'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
+                <a href="{{ safeRoute('messages.sender-ids') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.sender-ids') || request()->routeIs('messages.request-sender-id') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Apply Sender ID</a>
+                <a href="{{ safeRoute('messages.compose') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.compose') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Send SMS</a>
+                <a href="{{ safeRoute('messages.history') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.history') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Message History</a>
+                <a href="{{ safeRoute('messages.buy') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.buy') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.buy_sms_credits') }}</a>
             </div>
         </div>
 
-        <!-- Staff & Roles - Slate/Gray Theme -->
+        <!-- Staff & Roles -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'staff_roles' ? null : 'staff_roles'" 
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('user.staff*') || request()->routeIs('user.roles*') || request()->routeIs('user.branches*') ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-md' : 'text-gray-700 hover:bg-slate-100' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('user.staff*') || request()->routeIs('user.roles*') || request()->routeIs('user.branches*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('user.staff*') || request()->routeIs('user.roles*') || request()->routeIs('user.branches*') ? 'bg-white/20' : 'bg-slate-200 text-slate-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('user.staff*') || request()->routeIs('user.roles*') || request()->routeIs('user.branches*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
@@ -295,22 +313,22 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'staff_roles'" x-transition class="ml-8 space-y-1 border-l-2 border-slate-200 pl-4">
-                <a href="{{ safeRoute('user.staff') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.staff') && !request()->routeIs('user.staff.create') ? 'bg-slate-200 text-slate-700 font-medium' : 'text-gray-600 hover:text-slate-700 hover:bg-slate-100' }}">{{ __('messages.all_staff') }}</a>
-                <a href="{{ safeRoute('user.staff.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.staff.create') ? 'bg-slate-200 text-slate-700 font-medium' : 'text-gray-600 hover:text-slate-700 hover:bg-slate-100' }}">{{ __('messages.create_staff') }}</a>
-                <a href="{{ safeRoute('user.roles.manage') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.roles.manage') ? 'bg-slate-200 text-slate-700 font-medium' : 'text-gray-600 hover:text-slate-700 hover:bg-slate-100' }}">{{ __('messages.all_roles') }}</a>
-                <a href="{{ safeRoute('user.roles.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.roles.create') ? 'bg-slate-200 text-slate-700 font-medium' : 'text-gray-600 hover:text-slate-700 hover:bg-slate-100' }}">{{ __('messages.create_role') }}</a>
-                <a href="{{ safeRoute('user.branches.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.branches.index') ? 'bg-slate-200 text-slate-700 font-medium' : 'text-gray-600 hover:text-slate-700 hover:bg-slate-100' }}">{{ __('messages.all_branches') }}</a>
-                <a href="{{ safeRoute('user.branches.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.branches.create') ? 'bg-slate-200 text-slate-700 font-medium' : 'text-gray-600 hover:text-slate-700 hover:bg-slate-100' }}">{{ __('messages.create_branch') }}</a>
+            <div x-show="activeDropdown === 'staff_roles'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
+                <a href="{{ safeRoute('user.staff') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.staff') && !request()->routeIs('user.staff.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_staff') }}</a>
+                <a href="{{ safeRoute('user.staff.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.staff.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.create_staff') }}</a>
+                <a href="{{ safeRoute('user.roles.manage') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.roles.manage') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_roles') }}</a>
+                <a href="{{ safeRoute('user.roles.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.roles.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.create_role') }}</a>
+                <a href="{{ safeRoute('user.branches.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.branches.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_branches') }}</a>
+                <a href="{{ safeRoute('user.branches.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('user.branches.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.create_branch') }}</a>
             </div>
         </div>
 
-        <!-- Payroll - Emerald Theme -->
+        <!-- Payroll -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'payroll' ? null : 'payroll'"
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('payroll.*') ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-md' : 'text-gray-700 hover:bg-emerald-50' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('payroll.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('payroll.*') ? 'bg-white/20' : 'bg-emerald-100 text-emerald-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('payroll.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
@@ -321,25 +339,25 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'payroll'" x-transition class="ml-8 space-y-1 border-l-2 border-emerald-200 pl-4">
+            <div x-show="activeDropdown === 'payroll'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
                 @if(auth()->user()->isAdmin() || auth()->user()->isManager())
-                <a href="{{ safeRoute('payroll.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.index') ? 'bg-emerald-100 text-emerald-700 font-medium' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50' }}">{{ __('messages.salary_records') }}</a>
-                <a href="{{ safeRoute('payroll.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.create') ? 'bg-emerald-100 text-emerald-700 font-medium' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50' }}">{{ __('messages.add_salary') }}</a>
-                <a href="{{ safeRoute('payroll.advances.admin') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.advances.admin') ? 'bg-emerald-100 text-emerald-700 font-medium' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50' }}">{{ __('messages.salary_advance_requests') }}</a>
+                <a href="{{ safeRoute('payroll.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.salary_records') }}</a>
+                <a href="{{ safeRoute('payroll.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.add_salary') }}</a>
+                <a href="{{ safeRoute('payroll.advances.admin') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.advances.admin') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.salary_advance_requests') }}</a>
                 @else
-                <a href="{{ safeRoute('payroll.my-slips') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.my-slips') ? 'bg-emerald-100 text-emerald-700 font-medium' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50' }}">{{ __('messages.my_salary_slips') }}</a>
-                <a href="{{ safeRoute('payroll.advances') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.advances') ? 'bg-emerald-100 text-emerald-700 font-medium' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50' }}">{{ __('messages.my_salary_advances') }}</a>
-                <a href="{{ safeRoute('payroll.advance.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.advance.create') ? 'bg-emerald-100 text-emerald-700 font-medium' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50' }}">{{ __('messages.apply_salary_advance') }}</a>
+                <a href="{{ safeRoute('payroll.my-slips') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.my-slips') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.my_salary_slips') }}</a>
+                <a href="{{ safeRoute('payroll.advances') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.advances') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.my_salary_advances') }}</a>
+                <a href="{{ safeRoute('payroll.advance.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('payroll.advance.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.apply_salary_advance') }}</a>
                 @endif
             </div>
         </div>
 
-        <!-- Leave - Teal Theme -->
+        <!-- Leave -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'leave' ? null : 'leave'"
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('leave.*') ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md' : 'text-gray-700 hover:bg-teal-50' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('leave.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('leave.*') ? 'bg-white/20' : 'bg-teal-100 text-teal-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('leave.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
@@ -350,22 +368,22 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'leave'" x-transition class="ml-8 space-y-1 border-l-2 border-teal-200 pl-4">
+            <div x-show="activeDropdown === 'leave'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
                 @if(auth()->user()->isAdmin() || auth()->user()->isManager())
-                <a href="{{ safeRoute('leave.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('leave.index') ? 'bg-teal-100 text-teal-700 font-medium' : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50' }}">{{ __('messages.leave_requests') }}</a>
-                <a href="{{ safeRoute('leave.balances') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('leave.balances') ? 'bg-teal-100 text-teal-700 font-medium' : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50' }}">{{ __('messages.leave_balances') }}</a>
+                <a href="{{ safeRoute('leave.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('leave.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.leave_requests') }}</a>
+                <a href="{{ safeRoute('leave.balances') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('leave.balances') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.leave_balances') }}</a>
                 @endif
-                <a href="{{ safeRoute('leave.my') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('leave.my') ? 'bg-teal-100 text-teal-700 font-medium' : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50' }}">{{ __('messages.my_leaves') }}</a>
-                <a href="{{ safeRoute('leave.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('leave.create') ? 'bg-teal-100 text-teal-700 font-medium' : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50' }}">{{ __('messages.apply_leave') }}</a>
+                <a href="{{ safeRoute('leave.my') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('leave.my') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.my_leaves') }}</a>
+                <a href="{{ safeRoute('leave.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('leave.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.apply_leave') }}</a>
             </div>
         </div>
 
-        <!-- Documents - Violet Theme -->
+        <!-- Documents -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'documents' ? null : 'documents'"
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('documents.*') ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md' : 'text-gray-700 hover:bg-violet-50' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('documents.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('documents.*') ? 'bg-white/20' : 'bg-violet-100 text-violet-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('documents.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -376,16 +394,16 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
-            <div x-show="activeDropdown === 'documents'" x-transition class="ml-8 space-y-1 border-l-2 border-violet-200 pl-4">
-                <a href="{{ safeRoute('documents.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('documents.index') ? 'bg-violet-100 text-violet-700 font-medium' : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50' }}">{{ __('messages.all_documents') }}</a>
-                <a href="{{ safeRoute('documents.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('documents.create') ? 'bg-violet-100 text-violet-700 font-medium' : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50' }}">{{ __('messages.upload_document') }}</a>
+            <div x-show="activeDropdown === 'documents'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
+                <a href="{{ safeRoute('documents.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('documents.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_documents') }}</a>
+                <a href="{{ safeRoute('documents.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('documents.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.upload_document') }}</a>
             </div>
         </div>
 
-        <!-- Notifications - Red Theme -->
+        <!-- Notifications -->
         <a href="{{ safeRoute('notifications.index') }}" 
-           class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('notifications.*') ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md' : 'text-gray-700 hover:bg-red-50 hover:text-red-700' }}">
-            <div class="p-1.5 rounded-lg {{ request()->routeIs('notifications.*') ? 'bg-white/20' : 'bg-red-100 text-red-600' }} mr-3">
+           class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('notifications.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
+            <div class="p-1.5 rounded-lg {{ request()->routeIs('notifications.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
@@ -396,18 +414,18 @@
     </div>
 
     <!-- Loan Calculator Trigger Button -->
-    <div class="px-4 py-4 border-t border-gray-200 flex-shrink-0" style="background:#ffffff;">
+    <div class="px-4 py-3 border-t border-gray-100 flex-shrink-0 bg-white">
         <button type="button" onclick="document.getElementById('loanCalcModal').style.display='flex'"
-                class="w-full flex items-center justify-between px-4 py-3 rounded-xl" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-blue-50 border border-blue-100 hover:bg-blue-100 transition-colors group">
             <div class="flex items-center space-x-2">
-                <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:#dcfce7;">
-                    <svg class="w-4 h-4" style="color:#16a34a;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <span style="color:#15803d;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Loan Calculator</span>
+                <span class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Loan Calculator</span>
             </div>
-            <svg class="w-4 h-4" style="color:#6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
             </svg>
         </button>
