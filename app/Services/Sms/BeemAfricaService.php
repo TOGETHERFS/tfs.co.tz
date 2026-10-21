@@ -265,27 +265,39 @@ class BeemAfricaService
 
             $response = $this->makeRequest('POST', '/v1/send', $data);
 
-            if ($response['success'] && isset($response['data']['successful'])) {
+            $responseData = $response['data'] ?? [];
+            $isSuccess = $response['success']
+                && (
+                    (isset($responseData['successful']) && $responseData['successful'])
+                    || (isset($responseData['code']) && (int)$responseData['code'] === 100)
+                );
+
+            if ($isSuccess) {
                 Log::channel('sms')->info('SMS sent successfully', [
-                    'request_id' => $response['data']['request_id'] ?? null,
+                    'request_id' => $responseData['request_id'] ?? null,
                 ]);
                 return [
-                    'success' => true,
-                    'message_id' => $response['data']['request_id'] ?? null,
-                    'response' => $response['data'],
+                    'success'           => true,
+                    'message_id'        => $responseData['request_id'] ?? null,
+                    'response'          => $responseData,
                 ];
             }
 
-            $errorMsg = $response['data']['message'] ?? $response['error'] ?? 'Failed to send SMS';
+            $errorMsg = $responseData['message']
+                ?? $responseData['error']
+                ?? $response['error']
+                ?? ('HTTP ' . ($response['status'] ?? '0') . ' — SMS send failed');
+
             Log::channel('sms')->error('SMS send failed', [
-                'error' => $errorMsg,
-                'response' => $response,
+                'http_status' => $response['status'] ?? null,
+                'error'       => $errorMsg,
+                'response'    => $responseData,
             ]);
 
             return [
-                'success' => false,
-                'error' => $errorMsg,
-                'response' => $response['data'] ?? null,
+                'success'  => false,
+                'error'    => $errorMsg,
+                'response' => $responseData,
             ];
         } catch (\Exception $e) {
             Log::channel('sms')->error('SMS send exception', [

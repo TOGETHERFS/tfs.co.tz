@@ -188,8 +188,11 @@ class SmsController extends Controller
                 return redirect()->route('messages.index')->with('success', "SMS sent successfully to {$totalSent} recipient(s)");
             }
             // All sends failed — extract the actual error from the first message
-            $firstError = $result['messages'][0]['error'] ?? ($result['error'] ?? 'Failed to deliver SMS. Please verify your Beem Africa API credentials in SMS Settings.');
-            return back()->withInput()->with('error', "SMS failed: {$firstError}");
+            $firstError = $result['messages'][0]['error']
+                ?? $result['error']
+                ?? 'Failed to deliver SMS. Verify your Beem Africa API credentials in SMS Settings.';
+            \Log::warning('SMS send failed', ['result' => $result]);
+            return back()->withInput()->with('error', "SMS failed: {$firstError}. If this says \"Sender ID not approved\" or \"Invalid credentials\", re-enter your API key & secret in SMS Settings.");
         }
         return back()->withInput()->with('error', $result['error'] ?? 'Failed to send SMS');
     }
