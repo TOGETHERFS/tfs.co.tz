@@ -25,7 +25,7 @@ class BeemAfricaProvider implements SmsProviderInterface
     public function sendBulkSms(array $recipients, string $message, string $senderId = null): array
     {
         try {
-            $senderId = $senderId ?: ($this->config['sender_id'] ?? 'PHIDLMS');
+            $senderId = $senderId ?: ($this->config['sender_id'] ?? 'TFS');
             
             $payload = [
                 'source_addr' => $senderId,

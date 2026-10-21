@@ -207,7 +207,7 @@ class NotificationSmsService
     /**
      * Get the active sender ID for a tenant (falls back to any active system sender).
      */
-    protected function getTenantSenderId(int $tenantId): ?string
+    protected function getTenantSenderId(int $tenantId): string
     {
         $sid = SmsSenderId::where('tenant_id', $tenantId)
             ->where('is_active', true)
@@ -221,7 +221,11 @@ class NotificationSmsService
             ->where('is_active', true)
             ->first();
 
-        return $system?->sender_id;
+        if ($system) return $system->sender_id;
+
+        // fallback: SmsProviderSetting default_sender_id or hard-coded TFS
+        $providerSetting = \App\Models\Sms\SmsProviderSetting::getBeemAfrica();
+        return $providerSetting?->default_sender_id ?? 'TFS';
     }
 
     /**

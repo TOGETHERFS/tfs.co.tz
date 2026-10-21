@@ -826,6 +826,14 @@ class LoanController extends Controller
                 ]
             );
 
+            // Send disbursement SMS to borrower (non-critical)
+            try {
+                app(\App\Services\NotificationSmsService::class)
+                    ->sendLoanDisbursedSms($loan->fresh(['client']));
+            } catch (\Throwable $smsEx) {
+                logger()->warning('Loan disbursement SMS failed', ['loan_id' => $loan->id, 'error' => $smsEx->getMessage()]);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => $result['message'] ?? 'Loan disbursed successfully',

@@ -32,7 +32,7 @@ class BeemSmsService
     public function sendBulkSms(array $recipients, string $message, string $senderId = null): array
     {
         try {
-            $senderId = $senderId ?: config('services.beem.sender_id', 'PHIDLMS');
+            $senderId = $senderId ?: config('services.beem.sender_id', 'TFS');
             
             $payload = [
                 'source_addr' => $senderId,

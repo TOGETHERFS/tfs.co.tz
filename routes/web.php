@@ -863,6 +863,9 @@ Route::middleware(['auth', 'resolve.tenant', 'tenant.access'])->group(function (
         Route::post('/backup', [SettingsController::class, 'updateBackup'])->name('backup.update');
         Route::post('/backup/create', [SettingsController::class, 'createBackup'])->name('backup.create');
         Route::post('/backup/restore', [SettingsController::class, 'restoreBackup'])->name('backup.restore');
+        // SMS / Beem Africa settings
+        Route::get('/sms', [SettingsController::class, 'sms'])->name('sms');
+        Route::post('/sms', [SettingsController::class, 'updateSms'])->name('sms.update');
     });
 
     // Loan Products under granular gate (broader access)

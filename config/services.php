@@ -47,7 +47,7 @@ return [
     'beem' => [
         'api_key' => env('BEEM_API_KEY'),
         'secret_key' => env('BEEM_SECRET_KEY'),
-        'sender_id' => env('BEEM_SENDER_ID', 'PHIDTECH'),
+        'sender_id' => env('BEEM_SENDER_ID', 'TFS'),
         'base_url' => 'https://apisms.beem.africa/',
     ],
 

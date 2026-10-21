@@ -23,7 +23,7 @@
         $initialDropdown = 'reports';
     } elseif (request()->routeIs('accounting.*')) {
         $initialDropdown = 'accounting';
-    } elseif (request()->routeIs('messages.*')) {
+    } elseif (request()->routeIs('messages.*') || request()->routeIs('settings.sms')) {
         $initialDropdown = 'messages';
     } elseif (request()->routeIs('user.staff*') || request()->routeIs('user.roles*') || request()->routeIs('user.branches*')) {
         $initialDropdown = 'staff_roles';
@@ -290,10 +290,9 @@
                 </svg>
             </button>
             <div x-show="activeDropdown === 'messages'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
-                <a href="{{ safeRoute('messages.sender-ids') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.sender-ids') || request()->routeIs('messages.request-sender-id') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Apply Sender ID</a>
                 <a href="{{ safeRoute('messages.compose') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.compose') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Send SMS</a>
                 <a href="{{ safeRoute('messages.history') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.history') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Message History</a>
-                <a href="{{ safeRoute('messages.buy') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('messages.buy') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.buy_sms_credits') }}</a>
+                <a href="{{ safeRoute('settings.sms') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('settings.sms') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">SMS Settings</a>
             </div>
         </div>
 

@@ -848,6 +848,38 @@ class SettingsController extends Controller
     }
 
     /**
+     * Display SMS / Beem Africa settings.
+     */
+    public function sms()
+    {
+        $providerSetting = \App\Models\Sms\SmsProviderSetting::where('provider', 'beem_africa')->first();
+        return view('settings.sms', compact('providerSetting'));
+    }
+
+    /**
+     * Save SMS / Beem Africa settings.
+     */
+    public function updateSms(Request $request)
+    {
+        $request->validate([
+            'api_key'           => 'required|string|max:255',
+            'secret_key'        => 'required|string|max:255',
+            'default_sender_id' => 'required|string|max:11',
+        ]);
+
+        $setting = \App\Models\Sms\SmsProviderSetting::firstOrNew(['provider' => 'beem_africa']);
+        $setting->api_key           = $request->api_key;
+        $setting->secret_key        = $request->secret_key;
+        $setting->default_sender_id = strtoupper($request->default_sender_id);
+        $setting->is_active         = true;
+        $setting->cost_per_sms      = $setting->cost_per_sms ?? 0;
+        $setting->selling_price_per_sms = $setting->selling_price_per_sms ?? 0;
+        $setting->save();
+
+        return redirect()->route('settings.sms')->with('success', 'SMS settings saved successfully.');
+    }
+
+    /**
      * Change user password.
      */
     public function changePassword(Request $request)

@@ -107,22 +107,26 @@
                 <h3 class="text-lg font-medium text-gray-900">Message</h3>
             </div>
             <div class="p-6 space-y-4">
-                @if($senderIds->isNotEmpty())
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Sender ID</label>
-                    <select name="sender_id" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        @foreach($senderIds as $sid)
-                            <option value="{{ $sid->sender_id }}" {{ $sid->is_default ? 'selected' : '' }}>
-                                {{ $sid->sender_id }} {{ $sid->is_default ? '(Default)' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
+                    @if($senderIds->isNotEmpty())
+                        <select name="sender_id" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            @foreach($senderIds as $sid)
+                                <option value="{{ $sid->sender_id }}" {{ $sid->is_default ? 'selected' : '' }}>
+                                    {{ $sid->sender_id }} {{ $sid->is_default ? '(Default)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @else
+                        @php
+                            $providerSetting = \App\Models\Sms\SmsProviderSetting::getBeemAfrica();
+                            $defaultSenderId = $providerSetting?->default_sender_id ?? 'TFS';
+                        @endphp
+                        <input type="text" name="sender_id" value="{{ $defaultSenderId }}" maxlength="11"
+                               class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <p class="mt-1 text-xs text-gray-500">Using default sender ID. You can change it in <a href="{{ route('settings.sms') }}" class="text-blue-600 underline">SMS Settings</a>.</p>
+                    @endif
                 </div>
-                @else
-                <div class="bg-red-50 border border-red-200 rounded-md p-4">
-                    <p class="text-sm text-red-700">No approved Sender ID available. <a href="{{ route('messages.sender-ids') }}" class="font-medium underline">Request one</a></p>
-                </div>
-                @endif
 
                 @if($templates->isNotEmpty())
                 <div>
@@ -165,7 +169,7 @@
                 Cancel
             </a>
             <button type="submit" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-                    :disabled="!message || {{ $senderIds->isEmpty() ? 'true' : 'false' }}">
+                    :disabled="!message">
                 <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                 </svg>
