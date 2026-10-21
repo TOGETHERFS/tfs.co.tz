@@ -591,13 +591,8 @@ function loanShow(id) {
             } 
         },
         getDocTypeLabel(type) {
-            const labels = {
-                'loan_contract': 'Loan Contract',
-                'collateral_picture': 'Collateral Picture',
-                'borrower_photo': 'Borrower Photo',
-                'other': 'Other Attachment'
-            };
-            return labels[type] || 'Attachment';
+            if (type === 'loan_contract') return 'Contract';
+            return 'Other Attachment';
         },
         formatFileSize(bytes) {
             if (!bytes) return '0 KB';

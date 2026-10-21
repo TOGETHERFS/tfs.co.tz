@@ -10,9 +10,23 @@
             <h1 class="text-2xl font-semibold text-gray-900">Message History</h1>
             <p class="mt-1 text-sm text-gray-500">View all sent SMS messages</p>
         </div>
-        <div class="text-right">
-            <p class="text-sm text-gray-500">SMS Balance</p>
-            <p class="text-2xl font-bold text-blue-600">{{ number_format($balance->balance ?? 0) }}</p>
+        <div class="flex items-center gap-4">
+            <div class="text-right">
+                <p class="text-sm text-gray-500">SMS Balance</p>
+                <p class="text-2xl font-bold text-blue-600">{{ number_format($balance->balance ?? 0) }}</p>
+            </div>
+            <form method="POST" action="{{ route('messages.history.clear') }}"
+                  onsubmit="return confirm('Delete ALL SMS history? This cannot be undone.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="inline-flex items-center px-3 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Clear All History
+                </button>
+            </form>
         </div>
     </div>
 

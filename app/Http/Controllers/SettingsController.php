@@ -862,17 +862,29 @@ class SettingsController extends Controller
     public function updateSms(Request $request)
     {
         $request->validate([
-            'api_key'           => 'required|string|max:255',
-            'secret_key'        => 'required|string|max:255',
+            'api_key'           => 'nullable|string|max:255',
+            'secret_key'        => 'nullable|string|max:255',
             'default_sender_id' => 'required|string|max:11',
         ]);
 
         $setting = \App\Models\Sms\SmsProviderSetting::firstOrNew(['provider' => 'beem_africa']);
-        $setting->api_key           = $request->api_key;
-        $setting->secret_key        = $request->secret_key;
-        $setting->default_sender_id = strtoupper($request->default_sender_id);
-        $setting->is_active         = true;
-        $setting->cost_per_sms      = $setting->cost_per_sms ?? 0;
+
+        // Only update credentials if a real (non-placeholder) value is provided
+        $apiKey    = $request->api_key;
+        $secretKey = $request->secret_key;
+        $isApiKeyMasked    = str_contains($apiKey, '****') || str_contains($apiKey, '••••');
+        $isSecretKeyMasked = str_contains($secretKey, '****') || str_contains($secretKey, '••••');
+
+        if (!$isApiKeyMasked) {
+            $setting->api_key = $apiKey;
+        }
+        if (!$isSecretKeyMasked) {
+            $setting->secret_key = $secretKey;
+        }
+
+        $setting->default_sender_id     = strtoupper($request->default_sender_id);
+        $setting->is_active             = true;
+        $setting->cost_per_sms          = $setting->cost_per_sms ?? 0;
         $setting->selling_price_per_sms = $setting->selling_price_per_sms ?? 0;
         $setting->save();
 

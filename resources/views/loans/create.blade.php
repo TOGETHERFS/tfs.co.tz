@@ -606,41 +606,6 @@
                         </div>
                     </div>
 
-                    <!-- Local Government Authority Information -->
-                    <div class="border border-gray-200 rounded-lg p-4 bg-green-50 space-y-4">
-                        <h3 class="text-sm font-semibold text-gray-900 mb-3">{{ __('messages.lga_information') }}</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.officer_name') }}</label>
-                                <input type="text" x-model="form.lga.officer_name" placeholder="Street/Ward officer name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.position') }}</label>
-                                <input type="text" x-model="form.lga.position" placeholder="e.g., Ward Executive Officer" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.phone_number') }}</label>
-                                <input type="tel" x-model="form.lga.phone" placeholder="0712345678" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.street_village') }}</label>
-                                <input type="text" x-model="form.lga.street" placeholder="Street name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.ward') }}</label>
-                                <input type="text" x-model="form.lga.ward" placeholder="Ward name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.district') }}</label>
-                                <input type="text" x-model="form.lga.district" placeholder="District name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.region') }}</label>
-                                <input type="text" x-model="form.lga.region" placeholder="Region name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Attachments Section -->
                     <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
                         <div class="flex items-center justify-between mb-3">
@@ -665,10 +630,7 @@
                                 <div class="flex items-center gap-3 bg-white p-3 rounded-md border border-gray-200">
                                     <div class="flex-1">
                                         <select x-model="att.type" class="block w-full text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 mb-2">
-                                            <option value="loan_contract">Loan Contract</option>
-                                            <option value="spouse_consent">Spouse Consent</option>
-                                            <option value="guarantor_form">Guarantor Form</option>
-                                            <option value="collateral">Collateral</option>
+                                            <option value="loan_contract" :disabled="index > 0 && attachments.some((a, i) => i < index && a.type === 'loan_contract')">Contract</option>
                                             <option value="other">Other</option>
                                         </select>
                                         <input type="file" 
@@ -1220,7 +1182,8 @@ function loanCreate() {
         // Attachment management methods
         addAttachment() {
             if (this.attachments.length < 10) {
-                this.attachments.push({ type: 'loan_contract', file: null, error: null });
+                const hasContract = this.attachments.some(a => a.type === 'loan_contract');
+                this.attachments.push({ type: hasContract ? 'other' : 'loan_contract', file: null, error: null });
             }
         },
 

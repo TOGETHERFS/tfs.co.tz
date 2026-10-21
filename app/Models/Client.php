@@ -12,6 +12,7 @@ class Client extends BaseModel
         'tenant_id',
         'client_id',
         'first_name',
+        'middle_name',
         'last_name',
         'phone',
         'email',

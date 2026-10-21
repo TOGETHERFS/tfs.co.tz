@@ -183,8 +183,13 @@ class SmsController extends Controller
         );
 
         if ($result['success']) {
-            $totalSent = $result['sent'] ?? count($recipients);
-            return redirect()->route('messages.index')->with('success', "SMS sent successfully to {$totalSent} recipient(s)");
+            $totalSent = $result['sent'] ?? 0;
+            if ($totalSent > 0) {
+                return redirect()->route('messages.index')->with('success', "SMS sent successfully to {$totalSent} recipient(s)");
+            }
+            // All sends failed — extract the actual error from the first message
+            $firstError = $result['messages'][0]['error'] ?? ($result['error'] ?? 'Failed to deliver SMS. Please verify your Beem Africa API credentials in SMS Settings.');
+            return back()->withInput()->with('error', "SMS failed: {$firstError}");
         }
         return back()->withInput()->with('error', $result['error'] ?? 'Failed to send SMS');
     }

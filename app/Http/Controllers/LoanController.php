@@ -1143,34 +1143,35 @@ class LoanController extends Controller
     public function downloadTemplate()
     {
         $headers = [
-            'client_id_number',
-            'client_phone',
-            'product_name',
-            'product_id',
-            'principal',
-            'term',
-            'first_payment_date',
-            'loan_number',
-            'status',
-            'notes',
+            'Name',
+            'MobileNo',
+            'Email Address',
+            'Product Name',
+            'Total Principal',
+            'Total Interest',
+            'Outstanding Principal',
+            'Outstanding Interest',
+            'No Of Installments',
+            'Disbursement Date',
+            'Ending Date',
         ];
 
         $exampleRow = [
-            '12345678',           // client_id_number
-            '0712345678',         // client_phone
-            'Personal Loan',      // product_name
-            '',                   // product_id (optional if name provided)
-            '100000',             // principal
-            '12',                 // term (months)
-            date('Y-m-d', strtotime('+1 month')), // first_payment_date
-            '',                   // loan_number (optional, auto-generated)
-            'pending',            // status
-            'Imported loan',      // notes
+            'John Doe Mwangi',            // Name (full name)
+            '0712345678',                 // MobileNo
+            'john@example.com',           // Email Address
+            'Biashara',                   // Product Name (must match a product in the system)
+            '300000',                     // Total Principal
+            '90000',                      // Total Interest
+            '275000',                     // Outstanding Principal
+            '82500',                      // Outstanding Interest
+            '12',                         // No Of Installments
+            date('d/m/Y', strtotime('-6 months')), // Disbursement Date
+            date('d/m/Y', strtotime('+6 months')), // Ending Date
         ];
 
         $callback = function() use ($headers, $exampleRow) {
             $file = fopen('php://output', 'w');
-            // Add BOM for Excel UTF-8 compatibility
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($file, $headers);
             fputcsv($file, $exampleRow);

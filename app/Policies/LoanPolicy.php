@@ -69,10 +69,6 @@ class LoanPolicy
             return true;
         }
 
-        if (!$user->hasPermission('loan.stage.decide')) {
-            return false;
-        }
-
         return $this->roleMatchesStage($user, $loan->approval_stage);
     }
 
@@ -89,10 +85,6 @@ class LoanPolicy
         // Admins can always reject any stage
         if ($user->isAdmin()) {
             return true;
-        }
-
-        if (!$user->hasPermission('loan.stage.decide')) {
-            return false;
         }
 
         return $this->roleMatchesStage($user, $loan->approval_stage);
