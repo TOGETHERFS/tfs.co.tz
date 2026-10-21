@@ -11,7 +11,7 @@ class ApprovalPipelineService
      * Full ordered list of all possible approval stages and their required roles.
      */
     private static array $allStages = [
-        'cso_review'           => ['officer', 'credit_officer'],
+        'cso_review'           => ['cso', 'officer', 'credit_officer'],
         'loan_officer_review'  => ['loan_officer', 'credit_officer'],
         'manager_review'       => ['manager'],
         'gm_approval'          => ['gm'],

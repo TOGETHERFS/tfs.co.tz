@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
+use App\Services\Sms\BeemAfricaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -161,5 +162,180 @@ class ForgotPasswordController extends Controller
             // Re-throw the exception so the user knows there was an issue
             throw $e;
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SMS OTP PASSWORD RESET
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Show the phone number entry form for SMS OTP reset.
+     */
+    public function showSmsResetForm()
+    {
+        return view('auth.forgot-password-sms');
+    }
+
+    /**
+     * Send a 6-digit OTP to the user's registered phone number.
+     */
+    public function sendOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+        ]);
+
+        $phone = $this->normalizePhone($request->phone);
+
+        $user = User::where('phone', $phone)->first();
+        if (!$user) {
+            return back()->withErrors(['phone' => 'No account found with that phone number.'])->withInput();
+        }
+
+        // Generate 6-digit OTP
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Delete any existing OTPs for this phone
+        DB::table('sms_otp_codes')->where('phone', $phone)->delete();
+
+        // Store hashed OTP (expires in 10 minutes)
+        DB::table('sms_otp_codes')->insert([
+            'phone'      => $phone,
+            'code'       => Hash::make($otp),
+            'expires_at' => now()->addMinutes(10),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Send OTP via Beem Africa SMS
+        try {
+            $beem    = app(BeemAfricaService::class);
+            $message = "TFS Password Reset: Your OTP is {$otp}. Valid for 10 minutes. Do not share.";
+            $result  = $beem->sendSms('TFS', $phone, $message);
+
+            if (!$result['success']) {
+                \Log::warning('OTP SMS failed', ['phone' => $phone, 'error' => $result['error'] ?? '']);
+                return back()->with('error', 'Failed to send OTP SMS. Please try again or contact support.')->withInput();
+            }
+        } catch (\Exception $e) {
+            \Log::error('OTP SMS exception', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Failed to send OTP SMS: ' . $e->getMessage())->withInput();
+        }
+
+        return redirect()->route('password.sms.verify', ['phone' => $phone])
+            ->with('status', 'OTP sent to your phone. Enter it below.');
+    }
+
+    /**
+     * Show OTP verification form.
+     */
+    public function showOtpVerify(Request $request)
+    {
+        return view('auth.verify-otp', [
+            'phone' => $request->query('phone'),
+        ]);
+    }
+
+    /**
+     * Verify OTP and redirect to new-password form.
+     */
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'otp'   => 'required|string|size:6',
+        ]);
+
+        $phone  = $this->normalizePhone($request->phone);
+        $record = DB::table('sms_otp_codes')->where('phone', $phone)->first();
+
+        if (!$record) {
+            return back()->withErrors(['otp' => 'OTP not found. Please request a new one.'])->withInput();
+        }
+
+        if (now()->isAfter($record->expires_at)) {
+            DB::table('sms_otp_codes')->where('phone', $phone)->delete();
+            return back()->withErrors(['otp' => 'OTP has expired. Please request a new one.'])->withInput();
+        }
+
+        if (!Hash::check($request->otp, $record->code)) {
+            return back()->withErrors(['otp' => 'Invalid OTP. Please check and try again.'])->withInput();
+        }
+
+        // OTP valid — store a single-use token for the reset form
+        $token = Str::random(64);
+        DB::table('sms_otp_codes')->where('phone', $phone)->update([
+            'code'       => 'VERIFIED:' . Hash::make($token),
+            'expires_at' => now()->addMinutes(15),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('password.sms.reset.form', [
+            'phone' => $phone,
+            'token' => $token,
+        ]);
+    }
+
+    /**
+     * Show the new password form after OTP verification.
+     */
+    public function showSmsPasswordResetForm(Request $request)
+    {
+        return view('auth.reset-password-sms', [
+            'phone' => $request->query('phone'),
+            'token' => $request->query('token'),
+        ]);
+    }
+
+    /**
+     * Set the new password after OTP verification.
+     */
+    public function resetViaSms(Request $request)
+    {
+        $request->validate([
+            'phone'    => 'required|string',
+            'token'    => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $phone  = $this->normalizePhone($request->phone);
+        $record = DB::table('sms_otp_codes')->where('phone', $phone)->first();
+
+        if (!$record || !str_starts_with($record->code, 'VERIFIED:')) {
+            return back()->withErrors(['token' => 'Session expired. Please start the reset process again.']);
+        }
+
+        if (now()->isAfter($record->expires_at)) {
+            DB::table('sms_otp_codes')->where('phone', $phone)->delete();
+            return redirect()->route('password.sms.request')
+                ->with('error', 'Session expired. Please request a new OTP.');
+        }
+
+        $storedHash = substr($record->code, strlen('VERIFIED:'));
+        if (!Hash::check($request->token, $storedHash)) {
+            return back()->withErrors(['token' => 'Invalid reset token. Please start again.']);
+        }
+
+        $user = User::where('phone', $phone)->first();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Account not found.');
+        }
+
+        $user->update(['password' => Hash::make($request->password)]);
+
+        DB::table('sms_otp_codes')->where('phone', $phone)->delete();
+
+        return redirect()->route('login')->with('status', 'Password reset successfully. You can now log in.');
+    }
+
+    /**
+     * Normalise phone number to 255XXXXXXXXX format.
+     */
+    private function normalizePhone(string $phone): string
+    {
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+        if (strlen($phone) === 9) return '255' . $phone;
+        if (strlen($phone) === 10 && str_starts_with($phone, '0')) return '255' . substr($phone, 1);
+        return $phone;
     }
 }

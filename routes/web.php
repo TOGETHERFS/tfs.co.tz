@@ -172,7 +172,7 @@ Route::middleware('guest')->group(function () {
     
     Route::post('/register', [RegisterController::class, 'register']);
 
-    // Password Reset Routes
+    // Password Reset Routes (email)
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])
         ->name('password.request');
     
@@ -184,6 +184,20 @@ Route::middleware('guest')->group(function () {
     
     Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])
         ->name('password.update');
+
+    // Password Reset via SMS OTP
+    Route::get('/forgot-password-sms', [ForgotPasswordController::class, 'showSmsResetForm'])
+        ->name('password.sms.request');
+    Route::post('/forgot-password-sms', [ForgotPasswordController::class, 'sendOtp'])
+        ->name('password.sms.send');
+    Route::get('/verify-otp', [ForgotPasswordController::class, 'showOtpVerify'])
+        ->name('password.sms.verify');
+    Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])
+        ->name('password.sms.verify.submit');
+    Route::get('/reset-password-sms', [ForgotPasswordController::class, 'showSmsPasswordResetForm'])
+        ->name('password.sms.reset.form');
+    Route::post('/reset-password-sms', [ForgotPasswordController::class, 'resetViaSms'])
+        ->name('password.sms.reset');
 });
 
 // Email Verification Routes

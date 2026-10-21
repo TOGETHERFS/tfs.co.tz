@@ -80,8 +80,14 @@
             </div>
         </form>
 
-        <div class="mt-6 text-center">
-            <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-500">
+        <div class="mt-6 text-center space-y-2">
+            <p class="text-sm text-gray-500">
+                Don't have email access?
+                <a href="{{ route('password.sms.request') }}" class="text-blue-600 hover:text-blue-500 font-medium">
+                    Reset via SMS OTP
+                </a>
+            </p>
+            <a href="{{ route('login') }}" class="block text-sm text-gray-500 hover:text-gray-400">
                 ← Back to login
             </a>
         </div>
