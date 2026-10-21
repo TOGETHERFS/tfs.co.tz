@@ -60,9 +60,7 @@
                         <p class="text-2xl font-bold text-gray-900">{{ number_format($balance->balance ?? 0) }}</p>
                     </div>
                 </div>
-                <a href="{{ route('messages.packages') }}" class="mt-3 inline-flex text-sm text-blue-600 hover:text-blue-800">
-                    {{ __('messages.buy_more_sms') }} &rarr;
-                </a>
+                <span class="mt-3 inline-flex text-xs text-gray-400">Synced from Beem Africa</span>
             </div>
         </div>
 
@@ -116,7 +114,7 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <a href="{{ route('messages.compose') }}" class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition">
             <div class="flex items-center">
                 <div class="flex-shrink-0 bg-blue-50 rounded-lg p-3">
@@ -127,20 +125,6 @@
                 <div class="ml-4">
                     <h3 class="text-lg font-medium text-gray-900">Send SMS</h3>
                     <p class="text-sm text-gray-500">Send messages to borrowers</p>
-                </div>
-            </div>
-        </a>
-
-        <a href="{{ route('messages.packages') }}" class="bg-white p-6 rounded-lg border border-gray-200 hover:border-green-300 hover:shadow-md transition">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 bg-green-50 rounded-lg p-3">
-                    <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <h3 class="text-lg font-medium text-gray-900">Buy SMS</h3>
-                    <p class="text-sm text-gray-500">Purchase SMS packages</p>
                 </div>
             </div>
         </a>

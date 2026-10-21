@@ -41,9 +41,23 @@ class SmsController extends Controller
     public function index()
     {
         $this->initService();
-        
+
+        // Sync balance from Beem Africa to keep local DB accurate
+        try {
+            $beemBalance = app(\App\Services\Sms\BeemAfricaService::class)->getBalance();
+            if ($beemBalance['success'] && isset($beemBalance['balance'])) {
+                \App\Models\Sms\SmsBalance::updateOrCreate(
+                    ['tenant_id' => session('tenant_id')],
+                    ['balance'   => $beemBalance['balance']]
+                );
+            }
+        } catch (\Exception $e) {
+            Log::warning('Could not sync Beem balance on dashboard', ['error' => $e->getMessage()]);
+        }
+
         $balance = $this->smsService->getBalance();
-        $stats = $this->smsService->getUsageStats('month');
+        $stats   = $this->smsService->getUsageStats('month');
+
         $recentMessages = SmsMessage::forTenant(session('tenant_id'))
             ->with(['client', 'user'])
             ->latest()
@@ -51,8 +65,7 @@ class SmsController extends Controller
             ->get();
 
         $senderIds = SmsSenderId::forTenant(session('tenant_id'))->active()->get();
-        
-        // Also get approved sender ID requests
+
         $approvedRequests = SmsSenderIdRequest::where('tenant_id', session('tenant_id'))
             ->whereIn('status', ['approved', 'live'])
             ->get();
@@ -60,10 +73,7 @@ class SmsController extends Controller
             $senderIds = $senderIds->merge($approvedRequests);
         }
 
-        // Debug: Get all balances for comparison
-        $allBalances = \App\Models\Sms\SmsBalance::with('tenant')->get();
-
-        return view('messages.index', compact('balance', 'stats', 'recentMessages', 'senderIds', 'allBalances'));
+        return view('messages.index', compact('balance', 'stats', 'recentMessages', 'senderIds'));
     }
     
     public function debugBalance()
