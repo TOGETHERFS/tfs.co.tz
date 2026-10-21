@@ -39,8 +39,8 @@ class UserRoleManageController extends Controller
             'category' => 'operations'
         ],
         'cso' => [
-            'name' => 'Customer Service Officer (CSO)',
-            'description' => 'Handles client inquiries, support and customer relations',
+            'name' => 'Teller',
+            'description' => 'Handles client inquiries, loan intake, and customer-facing operations',
             'category' => 'operations'
         ],
         'accountant' => [

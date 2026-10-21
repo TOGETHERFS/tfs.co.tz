@@ -136,7 +136,7 @@ class UserStaffController extends Controller
             ['name' => 'HR', 'slug' => 'hr', 'category' => 'management'],
             ['name' => 'Loan Officer', 'slug' => 'loan_officer', 'category' => 'operations'],
             ['name' => 'Credit Officer', 'slug' => 'credit_officer', 'category' => 'operations'],
-            ['name' => 'Customer Service Officer (CSO)', 'slug' => 'cso', 'category' => 'operations'],
+            ['name' => 'Teller', 'slug' => 'cso', 'category' => 'operations'],
             ['name' => 'Accountant', 'slug' => 'accountant', 'category' => 'finance'],
             ['name' => 'Bursar', 'slug' => 'bursar', 'category' => 'finance'],
             ['name' => 'IT Staff', 'slug' => 'it_staff', 'category' => 'support'],

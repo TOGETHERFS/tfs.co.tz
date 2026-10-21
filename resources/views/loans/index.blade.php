@@ -893,7 +893,7 @@ function loansIndex(serverStats = {}, serverLoans = {}, serverProducts = []) {
         // Helpers
         formatStage(stage) {
             const map = {
-                cso_review: 'CSO Review',
+                cso_review: 'Teller Review',
                 loan_officer_review: 'Loan Officer Review',
                 manager_review: 'Manager Review',
                 gm_approval: 'GM Approval'

@@ -273,7 +273,9 @@
             </div>
         </div>
 
-        <!-- Messages -->
+        <!-- Messages (admin and teller only) -->
+        @php $userRoleSlug = strtolower(auth()->user()->role ?? ''); $rbacSlugs = auth()->user()->roles->pluck('slug')->map(fn($s)=>strtolower($s))->toArray(); $canSeeMessages = auth()->user()->isAdmin() || in_array($userRoleSlug, ['cso','teller','officer','credit_officer']) || count(array_intersect(['cso','teller','officer','credit_officer'], $rbacSlugs)) > 0; @endphp
+        @if($canSeeMessages)
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'messages' ? null : 'messages'" 
                     class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('messages.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
@@ -295,6 +297,7 @@
                 <a href="{{ safeRoute('settings.sms') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('settings.sms') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">SMS Settings</a>
             </div>
         </div>
+        @endif
 
         <!-- Staff & Roles -->
         <div class="space-y-1">

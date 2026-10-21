@@ -3,25 +3,24 @@
 @section('title', __('messages.dashboard'))
 
 @section('content')
-<div class="min-h-screen bg-gray-100">
+<div class="min-h-screen bg-gray-50">
 
-
-    <!-- Header -->
-    <div class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+    <!-- Green Header Banner -->
+    <div class="bg-gradient-to-r from-green-800 via-green-700 to-emerald-700 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <div class="flex items-center space-x-2 mb-0.5">
-                        <span class="inline-block w-1 h-5 bg-blue-600 rounded-full"></span>
-                        <h1 class="text-xl font-bold text-gray-900">{{ __('messages.user_portal') }}</h1>
-                    </div>
-                    <p class="text-sm text-gray-500 ml-3">{{ __('messages.welcome_back') }}, <span class="font-medium text-gray-700">{{ auth()->user()->name }}</span></p>
+                    <h1 class="text-xl font-bold text-white">{{ __('messages.user_portal') }}</h1>
+                    <p class="text-sm text-green-100 mt-0.5">{{ __('messages.welcome_back') }}, <span class="font-semibold text-white">{{ auth()->user()->name }}</span></p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                        {{ ucfirst(auth()->user()->role) }}
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+                        @php
+                            $roleLabel = strtolower(auth()->user()->role ?? '');
+                            echo ($roleLabel === 'cso') ? 'Teller' : ucfirst(str_replace('_',' ', auth()->user()->role ?? ''));
+                        @endphp
                     </span>
-                    <span class="text-xs text-gray-400 hidden sm:block">{{ now()->format('l, M d Y') }}</span>
+                    <span class="text-xs text-green-200 hidden sm:block">{{ now()->format('l, M d Y') }}</span>
                 </div>
             </div>
         </div>
@@ -39,8 +38,8 @@
                 <!-- Total Borrowers -->
                 <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-start justify-between mb-3">
-                        <div class="p-2 bg-blue-50 rounded-lg">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="p-2 bg-green-50 rounded-lg">
+                            <svg class="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
                         </div>
@@ -125,9 +124,9 @@
                 <p class="text-2xl font-bold text-teal-600">{{ number_format($stats['completed_loans']) }}</p>
                 <p class="text-xs text-teal-500 font-medium mt-0.5">{{ __('messages.completed') }}</p>
             </div>
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
-                <p class="text-base font-bold text-blue-600 leading-tight">TZS {{ number_format(($portfolio_metrics['outstanding_balance'] ?? 0), 0) }}</p>
-                <p class="text-xs text-blue-500 font-medium mt-0.5">{{ __('messages.outstanding') }}</p>
+            <div class="bg-green-50 border border-green-100 rounded-xl p-3 text-center">
+                <p class="text-base font-bold text-green-700 leading-tight">TZS {{ number_format(($portfolio_metrics['outstanding_balance'] ?? 0), 0) }}</p>
+                <p class="text-xs text-green-600 font-medium mt-0.5">{{ __('messages.outstanding') }}</p>
             </div>
             <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center">
                 <p class="text-2xl font-bold text-indigo-600">{{ number_format(($portfolio_metrics['portfolio_at_risk'] ?? 0), 1) }}%</p>
@@ -150,12 +149,12 @@
                 <div class="divide-y divide-gray-50">
                     <!-- Principal -->
                     <div class="flex items-center px-5 py-3.5">
-                        <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                            <svg class="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                         <div class="flex-1">
                             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mkopo Uliotolewa</p>
-                            <p class="text-xl font-bold text-blue-600">TZS {{ number_format($stats['total_principal_disbursed'] ?? 0, 0) }}</p>
+                            <p class="text-xl font-bold text-green-700">TZS {{ number_format($stats['total_principal_disbursed'] ?? 0, 0) }}</p>
                             <p class="text-xs text-gray-400">Mkopo halisi (bila riba)</p>
                         </div>
                     </div>
@@ -274,15 +273,15 @@
         <!-- Today's Repayments -->
         @if(($today_repayments ?? collect())->count() > 0)
         <div class="mb-6">
-            <div class="bg-white border border-blue-200 rounded-xl">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-blue-100 bg-blue-50 rounded-t-lg">
+            <div class="bg-white border border-green-200 rounded-xl">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-green-100 bg-green-50 rounded-t-lg">
                     <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
-                        <h4 class="font-semibold text-blue-800">Today's Repayments &mdash; {{ now()->format('d M Y') }}</h4>
+                        <h4 class="font-semibold text-green-800">Today's Repayments &mdash; {{ now()->format('d M Y') }}</h4>
                     </div>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                         {{ ($today_repayments ?? collect())->count() }} due
                     </span>
                 </div>
@@ -300,14 +299,14 @@
                             @if($schedule->status === 'partial')
                             <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-orange-100 text-orange-700">Partial</span>
                             @endif
-                            <span class="text-sm font-semibold text-blue-700">TZS {{ number_format($schedule->total_amount - $schedule->paid_amount, 0) }}</span>
+                            <span class="text-sm font-semibold text-green-700">TZS {{ number_format($schedule->total_amount - $schedule->paid_amount, 0) }}</span>
                         </div>
                     </div>
                     @endforeach
                 </div>
                 <div class="px-4 py-2 bg-gray-50 rounded-b-lg flex justify-between items-center">
                     <span class="text-xs text-gray-500">Total due today</span>
-                    <span class="text-sm font-bold text-blue-700">
+                    <span class="text-sm font-bold text-green-700">
                         TZS {{ number_format(($today_repayments ?? collect())->sum(fn($s) => $s->total_amount - $s->paid_amount), 0) }}
                     </span>
                 </div>
@@ -385,7 +384,7 @@
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-5 py-3 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                                        <div class="h-8 w-8 rounded-full bg-green-700 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
                                             {{ substr($staff['name'], 0, 1) }}
                                         </div>
                                         <div class="ml-3">
@@ -398,7 +397,7 @@
                                 </td>
                                 <td class="px-5 py-3 whitespace-nowrap">
                                     <span class="px-2 py-0.5 inline-flex text-xs font-semibold rounded-full
-                                        @if($staff['role'] === 'admin') bg-blue-50 text-blue-700
+                                        @if($staff['role'] === 'admin') bg-green-50 text-green-700
                                         @else bg-gray-100 text-gray-700
                                         @endif">
                                         {{ ucfirst(str_replace('_', ' ', $staff['role'])) }}
