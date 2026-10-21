@@ -407,6 +407,18 @@ class MessageController extends Controller
     }
 
     /**
+     * Clear all SMS log history for this tenant.
+     */
+    public function clearHistory(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id ?? session('tenant_id');
+        $deleted = SmsLog::where('tenant_id', $tenantId)->delete();
+
+        return redirect()->route('messages.index')
+            ->with('status', "SMS history cleared ({$deleted} records removed).");
+    }
+
+    /**
      * Show sender ID request information.
      */
     public function senderIdRequest()

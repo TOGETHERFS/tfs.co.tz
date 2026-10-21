@@ -189,6 +189,18 @@ class SmsController extends Controller
         return back()->withInput()->with('error', $result['error'] ?? 'Failed to send SMS');
     }
 
+    /**
+     * Clear all SMS message history for this tenant.
+     */
+    public function clearHistory()
+    {
+        $tenantId = session('tenant_id');
+        $deleted = SmsMessage::where('tenant_id', $tenantId)->delete();
+
+        return redirect()->route('messages.index')
+            ->with('success', "SMS history cleared ({$deleted} records removed).");
+    }
+
     public function quickSend(Request $request)
     {
         $this->initService();

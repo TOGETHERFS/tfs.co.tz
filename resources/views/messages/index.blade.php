@@ -12,6 +12,18 @@
             <p class="mt-1 text-sm text-gray-500">{{ __('messages.sms_notifications_desc') }}</p>
         </div>
         <div class="flex space-x-3">
+            <form action="{{ route('messages.history.clear') }}" method="POST"
+                  onsubmit="return confirm('Delete all SMS history? This cannot be undone.')"
+                  class="inline">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-red-50 hover:border-red-300 hover:text-red-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Clear History
+                </button>
+            </form>
             <a href="{{ route('messages.compose') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
@@ -21,9 +33,9 @@
         </div>
     </div>
 
-    @if(session('success'))
+    @if(session('success') || session('status'))
         <div class="p-4 rounded-md bg-green-50 border border-green-200">
-            <p class="text-sm text-green-700">{{ session('success') }}</p>
+            <p class="text-sm text-green-700">{{ session('success') ?? session('status') }}</p>
         </div>
     @endif
 
@@ -149,15 +161,18 @@
     </div>
 
     <!-- Sender IDs Status -->
-    @if($senderIds->isEmpty())
+    @php
+        $providerConfigured = \App\Models\Sms\SmsProviderSetting::getBeemAfrica();
+    @endphp
+    @if(!$providerConfigured || !$providerConfigured->api_key)
     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <div class="flex">
             <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
             <div class="ml-3">
-                <h3 class="text-sm font-medium text-yellow-800">No Sender ID Configured</h3>
-                <p class="mt-1 text-sm text-yellow-700">You need an approved Sender ID to send SMS messages. <a href="{{ route('messages.sender-ids') }}" class="font-medium underline">Request one now</a></p>
+                <h3 class="text-sm font-medium text-yellow-800">Beem Africa Not Configured</h3>
+                <p class="mt-1 text-sm text-yellow-700">Enter your Beem Africa API credentials to enable SMS. <a href="{{ route('settings.sms') }}" class="font-medium underline">Go to SMS Settings</a></p>
             </div>
         </div>
     </div>

@@ -621,6 +621,7 @@ Route::middleware(['auth', 'resolve.tenant', 'tenant.access'])->group(function (
         Route::get('/', [App\Http\Controllers\MessageController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\MessageController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\MessageController::class, 'store'])->name('store');
+        Route::delete('/history', [App\Http\Controllers\MessageController::class, 'clearHistory'])->name('history.clear');
         // Users: Buy SMS from admin (phidtech)
         Route::get('/buy', [App\Http\Controllers\MessageController::class, 'buy'])->name('buy');
         Route::post('/buy', [App\Http\Controllers\MessageController::class, 'buyStore'])->name('buy.store');

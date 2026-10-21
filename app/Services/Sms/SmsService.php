@@ -48,7 +48,7 @@ class SmsService
             ->toArray();
     }
 
-    public function getDefaultSenderId(): ?string
+    public function getDefaultSenderId(): string
     {
         $senderId = SmsSenderId::getDefaultForTenant($this->tenantId);
         if ($senderId) {
@@ -56,7 +56,13 @@ class SmsService
         }
 
         $systemDefault = SmsSenderId::getSystemDefault();
-        return $systemDefault?->sender_id;
+        if ($systemDefault) {
+            return $systemDefault->sender_id;
+        }
+
+        // Final fallback: configured provider setting or hard-coded TFS
+        $providerSetting = \App\Models\Sms\SmsProviderSetting::getBeemAfrica();
+        return $providerSetting?->default_sender_id ?? 'TFS';
     }
 
     public function sendSingle(string $recipient, string $message, ?string $senderId = null, array $options = []): array

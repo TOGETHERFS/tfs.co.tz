@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Sms\SmsProviderSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -13,9 +14,23 @@ class BeemSmsService
 
     public function __construct()
     {
-        $this->apiKey = config('services.beem.api_key');
+        // Primary: env vars. Fallback: SmsProviderSetting (configured via SMS Settings page).
+        $this->apiKey    = config('services.beem.api_key');
         $this->secretKey = config('services.beem.secret_key');
-        $this->baseUrl = config('services.beem.base_url', 'https://apisms.beem.africa/v1');
+
+        if (empty($this->apiKey) || empty($this->secretKey)) {
+            try {
+                $setting = SmsProviderSetting::getBeemAfrica();
+                if ($setting) {
+                    $this->apiKey    = $setting->api_key;
+                    $this->secretKey = $setting->secret_key;
+                }
+            } catch (\Throwable $e) {
+                // DB may not be available during early boot
+            }
+        }
+
+        $this->baseUrl = 'https://apisms.beem.africa/v1';
     }
 
     /**

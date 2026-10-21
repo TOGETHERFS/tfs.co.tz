@@ -29,6 +29,7 @@ Route::middleware(['auth', 'resolve.tenant', 'tenant.access'])->group(function (
         
         // Message History
         Route::get('/history', [SmsController::class, 'history'])->name('history');
+        Route::delete('/history/clear', [SmsController::class, 'clearHistory'])->name('history.clear');
         
         // Sender ID Management
         Route::get('/sender-ids', [SmsController::class, 'senderIds'])->name('sender-ids');
