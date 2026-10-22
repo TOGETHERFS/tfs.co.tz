@@ -657,7 +657,7 @@ class LoanController extends Controller
      */
     public function syncSchedules($id)
     {
-        $user = auth()->user();
+        $user = request()->user() ?? auth()->user();
         $user->loadMissing('roles');
         $adminSlugs = ['admin', 'administrator'];
         $isAdmin = $user->isAdmin()
@@ -674,10 +674,16 @@ class LoanController extends Controller
             return response()->json(['success' => false, 'message' => 'Loan not found.'], 404);
         }
 
+        // Optional: outstanding amounts for imported loans that have no repayment records
+        $outstandingPrincipal = request()->input('outstanding_principal');
+        $outstandingInterest  = request()->input('outstanding_interest');
+        $useOutstanding = $outstandingPrincipal !== null || $outstandingInterest !== null;
+
         DB::beginTransaction();
         try {
+            $schedules = $loan->schedules->sortBy('due_date')->values();
+
             // Reset all schedule paid amounts
-            $schedules = $loan->schedules->sortBy('due_date');
             foreach ($schedules as $sch) {
                 $sch->paid_amount = 0;
                 $sch->status      = 'pending';
@@ -685,21 +691,42 @@ class LoanController extends Controller
                 $sch->save();
             }
 
-            // Re-apply all repayments in payment_date order
-            $repayments = $loan->repayments->sortBy('payment_date');
-            $remainingBySchedule = $schedules->mapWithKeys(fn($s) => [$s->id => (float)$s->total_amount]);
-            $paidBySchedule      = $schedules->mapWithKeys(fn($s) => [$s->id => 0.0]);
+            $paidBySchedule = $schedules->mapWithKeys(fn($s) => [$s->id => 0.0]);
+            $lastPaidDate   = null;
 
-            foreach ($repayments as $rep) {
-                $remaining = (float) $rep->amount;
-                foreach ($schedules as $sch) {
-                    if ($remaining <= 0) break;
-                    $unpaid = $remainingBySchedule[$sch->id] - $paidBySchedule[$sch->id];
-                    if ($unpaid <= 0) continue;
-                    $pay = min($remaining, $unpaid);
-                    $paidBySchedule[$sch->id] += $pay;
-                    $remaining -= $pay;
+            if ($useOutstanding) {
+                // ── Imported-loan mode: replay paid amount derived from outstanding balances ──
+                $totalLoanAmount = (float) $loan->total_amount;
+                $outstanding     = (float) ($outstandingPrincipal ?? 0) + (float) ($outstandingInterest ?? 0);
+                $alreadyPaid     = round($totalLoanAmount - $outstanding, 2);
+
+                if ($alreadyPaid > 0) {
+                    $remaining = $alreadyPaid;
+                    foreach ($schedules as $sch) {
+                        if ($remaining <= 0) break;
+                        $pay = min($remaining, (float) $sch->total_amount);
+                        $paidBySchedule[$sch->id] = $pay;
+                        $remaining = round($remaining - $pay, 2);
+                    }
+                    $lastPaidDate = $loan->disbursed_at ?? now()->toDateString();
                 }
+            } else {
+                // ── Standard mode: replay actual repayment records ──
+                $repayments          = $loan->repayments->sortBy('payment_date');
+                $remainingBySchedule = $schedules->mapWithKeys(fn($s) => [$s->id => (float)$s->total_amount]);
+
+                foreach ($repayments as $rep) {
+                    $remaining = (float) $rep->amount;
+                    foreach ($schedules as $sch) {
+                        if ($remaining <= 0) break;
+                        $unpaid = $remainingBySchedule[$sch->id] - $paidBySchedule[$sch->id];
+                        if ($unpaid <= 0) continue;
+                        $pay = min($remaining, $unpaid);
+                        $paidBySchedule[$sch->id] += $pay;
+                        $remaining -= $pay;
+                    }
+                }
+                $lastPaidDate = $loan->repayments->sortBy('payment_date')->last()?->payment_date ?? now()->toDateString();
             }
 
             // Write updated paid amounts back to schedules
@@ -708,9 +735,10 @@ class LoanController extends Controller
                 $sch->paid_amount = $paid;
                 if ($paid >= (float)$sch->total_amount) {
                     $sch->status    = 'paid';
-                    $sch->paid_date = $repayments->last()?->payment_date ?? now()->toDateString();
+                    $sch->paid_date = $lastPaidDate;
                 } elseif ($paid > 0) {
-                    $sch->status = 'partial';
+                    $sch->status    = 'partial';
+                    $sch->paid_date = null;
                 } else {
                     $sch->status    = 'pending';
                     $sch->paid_date = null;
@@ -732,9 +760,12 @@ class LoanController extends Controller
 
             DB::commit();
 
+            $paidCount = $schedules->filter(fn($s) => ($paidBySchedule[$s->id] ?? 0) >= (float)$s->total_amount)->count();
             return response()->json([
                 'success' => true,
-                'message' => 'Schedules synced successfully. ' . $schedules->count() . ' installment(s) updated.'
+                'message' => "Schedules synced. {$paidCount} paid, " . ($schedules->count() - $paidCount) . " unpaid.",
+                'paid'    => $paidCount,
+                'unpaid'  => $schedules->count() - $paidCount,
             ]);
 
         } catch (\Exception $e) {

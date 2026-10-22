@@ -219,6 +219,14 @@
                         </svg>
                         <span x-text="syncingSchedules ? 'Syncing...' : 'Sync Schedules'"></span>
                     </button>
+                    <button @click="importFixModal.open=true"
+                            class="inline-flex items-center px-3 py-2 text-sm font-semibold rounded-md"
+                            style="background:#15803d;color:#ffffff;" title="Fix imported loan paid/unpaid statuses using outstanding balance">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Fix Import
+                    </button>
                     @endif
                     <button @click="printSchedule()" class="inline-flex items-center px-3 py-2 text-sm font-semibold rounded-md" style="background:#fefce8;color:#92400e;border:1px solid #fde68a;">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -389,6 +397,32 @@
         </div>
     </div>
 
+    <!-- Import Fix Modal -->
+    <div x-show="importFixModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display:none;">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
+            <div class="px-6 py-4 border-b flex justify-between items-center">
+                <h3 class="text-base font-semibold" style="color:#15803d;">Fix Imported Loan Schedule</h3>
+                <button @click="importFixModal.open=false" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+            </div>
+            <div class="px-6 py-4 space-y-4 text-sm">
+                <p class="text-gray-500">Enter the outstanding amounts from the original import file. Installments will be marked Paid/Unpaid based on how much has already been paid.</p>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Outstanding Principal</label>
+                    <input type="number" step="0.01" x-model="importFixModal.outstanding_principal" placeholder="e.g. 900000" class="w-full border rounded-md px-3 py-2 text-sm" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Outstanding Interest</label>
+                    <input type="number" step="0.01" x-model="importFixModal.outstanding_interest" placeholder="e.g. 180000" class="w-full border rounded-md px-3 py-2 text-sm" />
+                </div>
+                <div x-show="importFixModal.message" class="text-sm font-semibold py-1" :style="importFixModal.message.startsWith('Error') ? 'color:#dc2626' : 'color:#15803d'" x-text="importFixModal.message"></div>
+            </div>
+            <div class="px-6 py-4 border-t flex justify-end space-x-2">
+                <button @click="importFixModal.open=false" class="px-4 py-2 text-sm bg-gray-100 text-gray-800 rounded-md">Cancel</button>
+                <button @click="submitImportFix()" :disabled="importFixModal.submitting" class="px-4 py-2 text-sm font-semibold text-white rounded-md disabled:opacity-50" style="background:#15803d;" x-text="importFixModal.submitting ? 'Fixing...' : 'Apply Fix'"></button>
+            </div>
+        </div>
+    </div>
+
     <!-- History Modal -->
     <div x-show="historyModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl">
@@ -456,6 +490,7 @@ function loanShow(id) {
         error: null,
         decisionModal: { open: false, action: 'approve', comment: '', error: null, loading: false },
         historyModal: { open: false, records: [], loading: false },
+        importFixModal: { open: false, outstanding_principal: '', outstanding_interest: '', submitting: false, message: '' },
         scheduleTab: 'detail',
         syncingSchedules: false,
         async init() {
@@ -599,6 +634,35 @@ function loanShow(id) {
             if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
             if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
             return bytes + ' bytes';
+        },
+        async submitImportFix() {
+            this.importFixModal.submitting = true;
+            this.importFixModal.message = '';
+            try {
+                const body = {};
+                if (this.importFixModal.outstanding_principal !== '') body.outstanding_principal = parseFloat(this.importFixModal.outstanding_principal) || 0;
+                if (this.importFixModal.outstanding_interest  !== '') body.outstanding_interest  = parseFloat(this.importFixModal.outstanding_interest)  || 0;
+                const response = await fetch(`/api/loans/${this.loanId}/sync-schedules`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    this.importFixModal.message = data.message;
+                    await this.loadLoan();
+                    setTimeout(() => { this.importFixModal.open = false; this.importFixModal.message = ''; }, 1800);
+                } else {
+                    this.importFixModal.message = 'Error: ' + (data.message || 'Unknown error');
+                }
+            } catch (err) {
+                this.importFixModal.message = 'Network error.';
+            } finally {
+                this.importFixModal.submitting = false;
+            }
         },
         async syncSchedules() {
             if (this.syncingSchedules) return;
