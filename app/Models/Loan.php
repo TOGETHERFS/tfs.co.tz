@@ -415,10 +415,10 @@ class Loan extends BaseModel
     private function getStageDisplayName($stage)
     {
         $stageNames = [
-            'cso_review' => 'CSO Review',
+            'cso_review'          => 'Teller Review',
             'loan_officer_review' => 'Loan Officer Review',
-            'manager_review' => 'Manager Review',
-            'gm_approval' => 'GM Approval',
+            'manager_review'      => 'Manager Review',
+            'ceo_approval'        => 'CEO Approval',
         ];
 
         return $stageNames[$stage] ?? ucfirst(str_replace('_', ' ', $stage));

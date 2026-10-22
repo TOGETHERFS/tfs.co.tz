@@ -326,31 +326,62 @@ class WorkflowEngine
         ?array $disbursementData = null
     ): array {
         $state = $loan->workflowState;
+        $disburser->loadMissing('roles');
         
         if (!$state) {
-            // Legacy/manually approved loans have no workflow state.
-            // If the loan is already approved, create a bypass state so it can be disbursed.
+            // Legacy/pipeline-approved loans have no workflow state.
             if ($loan->status !== 'approved') {
-                throw new Exception('Loan has no active workflow and is not in approved status.');
+                throw new Exception('Loan is not in approved status. Current status: ' . $loan->status);
             }
 
+            // Check disburser authorisation before doing anything
+            $allowedRoles = ['admin', 'administrator', 'teller', 'accountant', 'cashier', 'cso', 'ceo', 'manager', 'gm', 'loan_officer'];
+            $userRole = strtolower(trim((string) $disburser->role));
+            $rbacSlugs = $disburser->roles->pluck('slug')->map(fn($s) => strtolower(trim($s)))->toArray();
+            $canDisburse = $disburser->isAdmin()
+                || $disburser->hasPermission('loan.disburse')
+                || in_array($userRole, $allowedRoles)
+                || !empty(array_intersect($rbacSlugs, $allowedRoles));
+            if (!$canDisburse) {
+                throw new Exception('You do not have permission to disburse loans.');
+            }
+
+            // Try to get or create a workflow state via WorkflowConfig
             $workflow = WorkflowConfig::getWorkflowForTenant($loan->tenant_id);
-            if (!$workflow) {
-                throw new Exception('No active workflow configuration found. Please contact your administrator.');
+            if ($workflow) {
+                $state = LoanWorkflowState::create([
+                    'loan_id'            => $loan->id,
+                    'workflow_config_id' => $workflow->id,
+                    'current_step_id'    => null,
+                    'status'             => LoanWorkflowState::STATUS_APPROVED,
+                    'completed_steps'    => 0,
+                    'total_steps'        => 0,
+                    'is_locked'          => true,
+                    'started_at'         => now(),
+                ]);
+                $loan->setRelation('workflowState', $state);
+            } else {
+                // No workflow config – disburse directly in simple pipeline mode
+                return DB::transaction(function () use ($loan, $disburser) {
+                    $loan->update([
+                        'status'       => 'disbursed',
+                        'disbursed_at' => now()->toDateString(),
+                        'disbursed_by' => $disburser->id,
+                    ]);
+                    if ($loan->schedules()->count() === 0) {
+                        try { $loan->generateSchedule(); } catch (\Throwable $e) {}
+                    }
+                    try {
+                        app(AutomatedAccountingService::class)->recordLoanDisbursement($loan->fresh());
+                    } catch (\Throwable $e) {}
+                    return [
+                        'success'           => true,
+                        'message'           => 'Loan disbursed successfully',
+                        'workflow_status'   => 'disbursed',
+                        'disbursement_date' => now()->toIso8601String(),
+                    ];
+                });
             }
-
-            $state = LoanWorkflowState::create([
-                'loan_id'            => $loan->id,
-                'workflow_config_id' => $workflow->id,
-                'current_step_id'    => null,
-                'status'             => LoanWorkflowState::STATUS_APPROVED,
-                'completed_steps'    => 0,
-                'total_steps'        => 0,
-                'is_locked'          => true,
-                'started_at'         => now(),
-            ]);
-
-            $loan->setRelation('workflowState', $state);
         }
 
         // Check if ready for disbursement
@@ -370,9 +401,11 @@ class WorkflowEngine
             $this->authorizeAction($loan, $currentStep, $disburser, false);
         } else {
             // Check if user has disbursement permission
-            if (!$disburser->hasPermission('loan.disburse') && !$disburser->isSuperAdmin()) {
-                $allowedRoles = ['admin', 'teller', 'accountant', 'cashier', 'cso', 'manager', 'gm', 'loan_officer'];
-                if (!in_array($disburser->role, $allowedRoles)) {
+            if (!$disburser->hasPermission('loan.disburse') && !$disburser->isSuperAdmin() && !$disburser->isAdmin()) {
+                $allowedRoles = ['admin', 'administrator', 'teller', 'accountant', 'cashier', 'cso', 'ceo', 'manager', 'gm', 'loan_officer'];
+                $userRole = strtolower(trim((string) $disburser->role));
+                $rbacSlugs = $disburser->roles->pluck('slug')->map(fn($s) => strtolower(trim($s)))->toArray();
+                if (!in_array($userRole, $allowedRoles) && empty(array_intersect($rbacSlugs, $allowedRoles))) {
                     throw new Exception('You do not have permission to disburse loans.');
                 }
             }

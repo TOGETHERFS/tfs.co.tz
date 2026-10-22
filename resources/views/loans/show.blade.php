@@ -578,7 +578,7 @@ function loanShow(id) {
             }
         },
         formatStage(stage) {
-            const map = { cso_review: 'Teller Review', loan_officer_review: 'Loan Officer Review', manager_review: 'Manager Review', gm_approval: 'GM Approval' };
+            const map = { cso_review: 'Teller Review', loan_officer_review: 'Loan Officer Review', manager_review: 'Manager Review', ceo_approval: 'CEO Approval', gm_approval: 'CEO Approval' };
             return map[stage] || (stage ? stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '-');
         },
         formatDate(value) { try { const d = new Date(value); if (isNaN(d)) return value || ''; const dd = String(d.getDate()).padStart(2,'0'); const mm = String(d.getMonth()+1).padStart(2,'0'); const yyyy = d.getFullYear(); return dd+'/'+mm+'/'+yyyy; } catch (_) { return value || ''; } },

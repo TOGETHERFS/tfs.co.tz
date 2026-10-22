@@ -896,7 +896,8 @@ function loansIndex(serverStats = {}, serverLoans = {}, serverProducts = []) {
                 cso_review: 'Teller Review',
                 loan_officer_review: 'Loan Officer Review',
                 manager_review: 'Manager Review',
-                gm_approval: 'GM Approval'
+                ceo_approval: 'CEO Approval',
+                gm_approval: 'CEO Approval'
             };
             return map[stage] || (stage ? stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '-');
         },

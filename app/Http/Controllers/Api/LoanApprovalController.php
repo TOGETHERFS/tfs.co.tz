@@ -58,18 +58,19 @@ class LoanApprovalController extends Controller
             ]);
 
             // Move to next stage or finalize
-            $next = $this->nextStage($loan->approval_stage);
+            $currentStage = $loan->approval_stage;
+            $next = $this->nextStage($currentStage);
             if ($next) {
                 $loan->update([
-                    'approval_stage_status' => 'approved',
-                    'approval_stage' => $next,
+                    'approval_stage'        => $next,
                     'approval_stage_status' => 'pending',
+                    'status'                => 'pending',
                 ]);
             } else {
-                // Final approval
+                // Final approval – loan is fully approved
                 $loan->update([
                     'approval_stage_status' => 'approved',
-                    'status' => 'approved',
+                    'status'                => 'approved',
                 ]);
             }
 

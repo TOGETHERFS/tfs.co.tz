@@ -106,10 +106,12 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
                 if ($existing) {
                     $existing->update($payload);
                     try { $existing->generateSchedule(); } catch (\Throwable $e) {}
+                    $this->replayPaidAmountOnSchedules($existing, $data);
                     $this->updated++;
                 } else {
                     $loan = Loan::create($payload);
                     try { $loan->generateSchedule(); } catch (\Throwable $e) {}
+                    $this->replayPaidAmountOnSchedules($loan, $data);
                     $this->created++;
                 }
             } catch (\Throwable $e) {
@@ -288,6 +290,42 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
             ->first();
         $seq = $last ? (intval(substr($last->loan_number, -4)) + 1) : 1;
         return $prefix . $year . $month . str_pad($seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Replay already-paid amounts onto schedules so paid/partial/pending statuses are correct.
+     * The amount already paid = total_amount - (outstanding_principal + outstanding_interest).
+     */
+    protected function replayPaidAmountOnSchedules(Loan $loan, array $data): void
+    {
+        $outstandingPrincipal = (float) ($data['outstanding_principal'] ?? 0);
+        $outstandingInterest  = (float) ($data['outstanding_interest']  ?? 0);
+        $totalLoanAmount      = (float) $loan->total_amount;
+
+        $alreadyPaid = round($totalLoanAmount - ($outstandingPrincipal + $outstandingInterest), 2);
+        if ($alreadyPaid <= 0) return;
+
+        $remaining = $alreadyPaid;
+        $disbursementDate = $data['disbursement_date'] ?? null;
+        $paidDate = $disbursementDate ? $disbursementDate->toDateString() : null;
+
+        $schedules = $loan->schedules()->orderBy('due_date')->orderBy('installment_number')->get();
+        foreach ($schedules as $schedule) {
+            if ($remaining <= 0) break;
+
+            $due  = (float) $schedule->total_amount;
+            $pay  = min($remaining, $due);
+            $remaining = round($remaining - $pay, 2);
+
+            $schedule->paid_amount = round($pay, 2);
+            if ($schedule->paid_amount >= $schedule->total_amount) {
+                $schedule->status    = 'paid';
+                $schedule->paid_date = $paidDate;
+            } elseif ($schedule->paid_amount > 0) {
+                $schedule->status = 'partial';
+            }
+            $schedule->save();
+        }
     }
 
     public function getSummary(): array

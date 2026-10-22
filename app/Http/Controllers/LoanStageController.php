@@ -39,26 +39,27 @@ class LoanStageController extends Controller
 
         DB::beginTransaction();
         try {
+            $currentStage = $loan->approval_stage;
+
             LoanApproval::create([
-                'loan_id' => $loan->id,
-                'stage' => $loan->approval_stage,
-                'status' => 'approved',
-                'user_id' => $user->id,
-                'comment' => $validated['comment'] ?? null,
+                'loan_id'    => $loan->id,
+                'stage'      => $currentStage,
+                'status'     => 'approved',
+                'user_id'    => $user->id,
+                'comment'    => $validated['comment'] ?? null,
                 'decided_at' => now(),
             ]);
 
-            $loan->update(['approval_stage_status' => 'approved']);
-
-            $next = $this->nextStage($loan->approval_stage);
+            $next = $this->nextStage($currentStage);
             if ($next) {
                 $loan->update([
-                    'approval_stage' => $next,
+                    'approval_stage'        => $next,
                     'approval_stage_status' => 'pending',
+                    'status'                => 'pending',
                 ]);
             } else {
                 $loan->update([
-                    'status' => 'approved',
+                    'status'                => 'approved',
                     'approval_stage_status' => 'approved',
                 ]);
             }
