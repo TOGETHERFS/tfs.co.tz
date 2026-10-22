@@ -228,9 +228,18 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
 
         // Amounts — new format uses total_principal / old uses principal
         $principal           = (float)str_replace(',', '', (string)($row['total_principal'] ?? $row['principal'] ?? 0));
-        $totalInterest       = (float)str_replace(',', '', (string)($row['total_interest'] ?? 0));
-        $outstandingPrincipal = (float)str_replace(',', '', (string)($row['outstanding_principal'] ?? 0));
-        $outstandingInterest  = (float)str_replace(',', '', (string)($row['outstanding_interest'] ?? 0));
+        $totalInterest       = (float)str_replace(',', '', (string)($row['total_interest'] ?? $row['totalinterest'] ?? 0));
+        $outstandingPrincipal = (float)str_replace(',', '', (string)(
+            $row['outstanding_principal'] ?? $row['outstandingprincipal'] ??
+            $row['outstanding_balance']   ?? $row['outstandingbalance']   ??
+            $row['remaining_principal']   ?? $row['remainingprincipal']   ??
+            $row['principal_balance']     ?? $row['balance_principal']    ?? 0
+        ));
+        $outstandingInterest  = (float)str_replace(',', '', (string)(
+            $row['outstanding_interest']  ?? $row['outstandinginterest']  ??
+            $row['remaining_interest']    ?? $row['remaininginterest']    ??
+            $row['accrued_interest']      ?? $row['accruedinterest']      ?? 0
+        ));
 
         // Term — new format uses no_of_installments / old uses term
         $term = (int)($row['no_of_installments'] ?? $row['no_of_installment'] ?? $row['installments'] ?? $row['term'] ?? 0);
@@ -294,22 +303,56 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
 
     /**
      * Replay already-paid amounts onto schedules so paid/partial/pending statuses are correct.
-     * The amount already paid = total_amount - (outstanding_principal + outstanding_interest).
+     *
+     * Strategy 1: alreadyPaid = total_amount - (outstanding_principal + outstanding_interest)
+     * Strategy 2: infer paid count from outstanding_principal vs principal ratio (when interest
+     *             is not supplied separately but principal has reduced)
+     * Strategy 3: mark all paid when loan is completed and outstanding data is absent
      */
     protected function replayPaidAmountOnSchedules(Loan $loan, array $data): void
     {
         $outstandingPrincipal = (float) ($data['outstanding_principal'] ?? 0);
         $outstandingInterest  = (float) ($data['outstanding_interest']  ?? 0);
         $totalLoanAmount      = (float) $loan->total_amount;
+        $loanPrincipal        = (float) $loan->principal;
+        $loanTerm             = (int)   $loan->term;
 
-        $alreadyPaid = round($totalLoanAmount - ($outstandingPrincipal + $outstandingInterest), 2);
-        if ($alreadyPaid <= 0) return;
-
-        $remaining = $alreadyPaid;
         $disbursementDate = $data['disbursement_date'] ?? null;
         $paidDate = $disbursementDate ? $disbursementDate->toDateString() : null;
 
         $schedules = $loan->schedules()->orderBy('due_date')->orderBy('installment_number')->get();
+        if ($schedules->isEmpty()) return;
+
+        // Strategy 1: direct balance subtraction
+        $alreadyPaid = round($totalLoanAmount - ($outstandingPrincipal + $outstandingInterest), 2);
+
+        // Strategy 2: fallback via principal-reduction ratio
+        // Used when interest is not provided separately but outstanding_principal shows partial repayment
+        if ($alreadyPaid <= 0
+            && $outstandingPrincipal > 0
+            && $loanPrincipal > 0
+            && $outstandingPrincipal < $loanPrincipal
+            && $loanTerm > 0
+        ) {
+            $paidPrincipal           = round($loanPrincipal - $outstandingPrincipal, 2);
+            $principalPerInstallment = round($loanPrincipal / $loanTerm, 4);
+            if ($principalPerInstallment > 0) {
+                $paidCount = (int) floor($paidPrincipal / $principalPerInstallment);
+                if ($paidCount > 0) {
+                    $alreadyPaid = $schedules->take($paidCount)->sum(fn($s) => (float) $s->total_amount);
+                    $alreadyPaid = round($alreadyPaid, 2);
+                }
+            }
+        }
+
+        // Strategy 3: loan is completed but no outstanding columns provided
+        if ($alreadyPaid <= 0 && $loan->status === 'completed') {
+            $alreadyPaid = $totalLoanAmount;
+        }
+
+        if ($alreadyPaid <= 0) return;
+
+        $remaining = $alreadyPaid;
         foreach ($schedules as $schedule) {
             if ($remaining <= 0) break;
 
@@ -318,11 +361,12 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
             $remaining = round($remaining - $pay, 2);
 
             $schedule->paid_amount = round($pay, 2);
-            if ($schedule->paid_amount >= $schedule->total_amount) {
+            if ($schedule->paid_amount >= $due) {
                 $schedule->status    = 'paid';
                 $schedule->paid_date = $paidDate;
             } elseif ($schedule->paid_amount > 0) {
-                $schedule->status = 'partial';
+                $schedule->status    = 'partial';
+                $schedule->paid_date = null;
             }
             $schedule->save();
         }

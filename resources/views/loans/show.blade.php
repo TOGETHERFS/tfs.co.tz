@@ -808,12 +808,14 @@ function loanShow(id) {
         scheduleStatusLabel(s) {
             const st = (s.status || '').toLowerCase();
             if (st === 'paid' || st === 'completed') return 'PAID';
+            if (st === 'partial') return 'PARTIAL';
             return 'UNPAID';
         },
         scheduleStatusStyle(s) {
             const label = this.scheduleStatusLabel(s);
             const base = 'padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:0.06em;';
-            if (label === 'PAID')   return base + 'background:#16a34a;color:#fff;';
+            if (label === 'PAID')    return base + 'background:#16a34a;color:#fff;';
+            if (label === 'PARTIAL') return base + 'background:#d97706;color:#fff;';
             return base + 'background:#dc2626;color:#fff;';
         },
         scheduleDaysArrears(s) {
