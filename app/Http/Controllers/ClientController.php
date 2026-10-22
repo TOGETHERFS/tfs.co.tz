@@ -344,18 +344,36 @@ class ClientController extends Controller
         ]);
 
         $client->update($validated);
-
         return redirect()->route('clients.show', $client)
-                        ->with('success', 'Borrower updated successfully.');
+                       ->with('success', 'Borrower updated successfully.');
     }
 
-    DB::beginTransaction();
-    try {
-        // Delete all related records
-        foreach ($client->loans as $loan) {
-            $loan->schedules()->delete();
-            $loan->documents()->delete();
-            $loan->repayments()->delete();
+    /**
+     * Remove the specified client from storage.
+     */
+    public function destroy(Request $request, Client $client)
+    {
+        $user = auth()->user();
+        $deleteRoles = ['admin', 'administrator', 'superadmin', 'super_admin', 'ceo', 'manager', 'gm'];
+        $canDelete = $user->isAdmin()
+            || $user->isSuperAdmin()
+            || in_array(strtolower($user->role), $deleteRoles)
+            || $user->hasPermission('borrowers.delete');
+
+        if (!$canDelete) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized to delete borrowers.'], 403);
+            }
+            return redirect()->back()->with('error', 'You do not have permission to delete borrowers.');
+        }
+
+        $activeLoans = $client->loans()->whereIn('status', ['active', 'disbursed', 'approved', 'pending'])->count();
+        $forceDelete = $request->has('force') && $user->isSuperAdmin();
+
+        if ($activeLoans > 0 && !$forceDelete) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
                     'message' => 'Cannot delete borrower with active loans. Use force delete as superadmin.'
                 ], 422);
             }
@@ -365,13 +383,11 @@ class ClientController extends Controller
 
         DB::beginTransaction();
         try {
-            // Delete all related records
             foreach ($client->loans as $loan) {
                 $loan->schedules()->delete();
                 $loan->documents()->delete();
                 $loan->repayments()->delete();
-                
-                // Delete workflow related records if they exist
+
                 if (method_exists($loan, 'workflowState') && $loan->workflowState) {
                     $loan->workflowState()->delete();
                 }
@@ -381,12 +397,11 @@ class ClientController extends Controller
                 if (method_exists($loan, 'approvals')) {
                     $loan->approvals()->delete();
                 }
-                
+
                 $loan->delete();
             }
-            
+
             $client->delete();
-            
             DB::commit();
 
             if ($request->expectsJson()) {
@@ -401,14 +416,14 @@ class ClientController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             logger()->error('Client deletion failed', ['error' => $e->getMessage(), 'client_id' => $client->id]);
-            
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to delete borrower: ' . $e->getMessage()
                 ], 500);
             }
-            
+
             return redirect()->back()->with('error', 'Failed to delete borrower.');
         }
     }
