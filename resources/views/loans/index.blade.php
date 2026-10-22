@@ -424,8 +424,12 @@
 
                                     <template x-if="loan.status === 'pending'">
                                         <div class="flex space-x-2">
-                                            <button @click="openDecisionModal('approve', loan)" class="text-green-600 hover:text-green-900 text-sm">{{ __('messages.approve') }}</button>
-                                            <button @click="openDecisionModal('reject', loan)" class="text-red-600 hover:text-red-900 text-sm">{{ __('messages.reject') }}</button>
+                                            <template x-if="canDecide(loan)">
+                                                <button @click="openDecisionModal('approve', loan)" class="text-green-600 hover:text-green-900 text-sm">{{ __('messages.approve') }}</button>
+                                            </template>
+                                            <template x-if="canDecide(loan)">
+                                                <button @click="openDecisionModal('reject', loan)" class="text-red-600 hover:text-red-900 text-sm">{{ __('messages.reject') }}</button>
+                                            </template>
                                             <button @click="openHistory(loan)" class="text-gray-600 hover:text-gray-900 text-sm">{{ __('messages.history') }}</button>
                                         </div>
                                     </template>
@@ -829,6 +833,17 @@ function loansIndex(serverStats = {}, serverLoans = {}, serverProducts = []) {
             } finally {
                 this.disburseModal.submitting = false;
             }
+        },
+        canDecide(loan) {
+            const userRole = (window.AppUser?.role || '').toLowerCase();
+            const userRoleSlugs = (window.AppUser?.roleSlugs || []).map(s => s.toLowerCase());
+            const adminAliases = ['admin', 'administrator'];
+            if (adminAliases.includes(userRole) || userRoleSlugs.some(s => adminAliases.includes(s))) return true;
+            const stage = loan?.approval_stage;
+            if (!stage) return false;
+            const map = window.AppUser?.approvalStageMap || {};
+            const allowedRoles = (map[stage] || []).map(r => r.toLowerCase());
+            return allowedRoles.includes(userRole) || userRoleSlugs.some(s => allowedRoles.includes(s));
         },
         canDisburse() {
             // Check if user can disburse loans based on permission or default roles
