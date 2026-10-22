@@ -219,7 +219,7 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
         // Support both old column names and new Excel column names
         $name         = trim((string)($row['name'] ?? $row['borrower_name'] ?? ''));
         $phone        = $this->formatPhone(trim((string)($row['mobileno'] ?? $row['mobile_no'] ?? $row['mobile_number'] ?? $row['client_phone'] ?? '')));
-        $email        = trim((string)($row['email_address'] ?? $row['email'] ?? ''));
+        $email        = trim((string)($row['email_address'] ?? $row['email_addr'] ?? $row['emailaddr'] ?? $row['email'] ?? ''));
         $productName  = trim((string)($row['product_name'] ?? ''));
         $productId    = isset($row['product_id']) && is_numeric($row['product_id']) ? (int)$row['product_id'] : null;
         $idNumber     = trim((string)($row['client_id_number'] ?? $row['id_number'] ?? ''));
@@ -227,13 +227,17 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
         $notes        = trim((string)($row['notes'] ?? ''));
 
         // Amounts — new format uses total_principal / old uses principal
-        $principal           = (float)str_replace(',', '', (string)($row['total_principal'] ?? $row['principal'] ?? 0));
-        $totalInterest       = (float)str_replace(',', '', (string)($row['total_interest'] ?? $row['totalinterest'] ?? 0));
+        $principal           = (float)str_replace(',', '', (string)($row['total_principal'] ?? $row['total_princip'] ?? $row['principal'] ?? 0));
+        $totalInterest       = (float)str_replace(',', '', (string)($row['total_interest'] ?? $row['total_interes'] ?? $row['totalinterest'] ?? 0));
+        // Directly-supplied paid amounts from the new template (most reliable)
+        $paidPrincipalCol    = (float)str_replace(',', '', (string)($row['paid_principal'] ?? $row['paidprincipal'] ?? -1));
+        $paidInterestCol     = (float)str_replace(',', '', (string)($row['paid_interest']  ?? $row['paid_intres']  ?? $row['paidinterest'] ?? -1));
         $outstandingPrincipal = (float)str_replace(',', '', (string)(
-            $row['outstanding_principal'] ?? $row['outstandingprincipal'] ??
-            $row['outstanding_balance']   ?? $row['outstandingbalance']   ??
-            $row['remaining_principal']   ?? $row['remainingprincipal']   ??
-            $row['principal_balance']     ?? $row['balance_principal']    ?? 0
+            $row['outstanding_principal'] ?? $row['outstanding_prin']    ??
+            $row['outstandingprincipal']  ?? $row['outstanding_balance'] ??
+            $row['outstandingbalance']    ?? $row['remaining_principal'] ??
+            $row['remainingprincipal']    ?? $row['principal_balance']   ??
+            $row['balance_principal']     ?? 0
         ));
         $outstandingInterest  = (float)str_replace(',', '', (string)(
             $row['outstanding_interest']  ?? $row['outstandinginterest']  ??
@@ -242,7 +246,7 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
         ));
 
         // Term — new format uses no_of_installments / old uses term
-        $term = (int)($row['no_of_installments'] ?? $row['no_of_installment'] ?? $row['installments'] ?? $row['term'] ?? 0);
+        $term = (int)($row['no_of_installments'] ?? $row['no_of_installment'] ?? $row['no_of_installme'] ?? $row['installments'] ?? $row['term'] ?? 0);
 
         // Dates
         $disbursementDate = $this->parseDate($row['disbursement_date'] ?? $row['disburse_date'] ?? null);
@@ -261,7 +265,9 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
             'principal'            => $principal,
             'total_interest'       => $totalInterest,
             'outstanding_principal' => $outstandingPrincipal,
-            'outstanding_interest' => $outstandingInterest,
+            'outstanding_interest'  => $outstandingInterest,
+            'paid_principal_col'    => $paidPrincipalCol,
+            'paid_interest_col'     => $paidInterestCol,
             'term'                 => $term,
             'disbursement_date'    => $disbursementDate,
             'first_payment_date'   => $firstPaymentDate,
@@ -304,7 +310,8 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
     /**
      * Replay already-paid amounts onto schedules so paid/partial/pending statuses are correct.
      *
-     * Strategy 1: alreadyPaid = total_amount - (outstanding_principal + outstanding_interest)
+     * Strategy 0: use direct paid_principal + paid_interest columns
+     * Strategy 1: derive from outstanding balances  (total - outstanding = paid)
      * Strategy 2: infer paid count from outstanding_principal vs principal ratio (when interest
      *             is not supplied separately but principal has reduced)
      * Strategy 3: mark all paid when loan is completed and outstanding data is absent
@@ -313,6 +320,8 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
     {
         $outstandingPrincipal = (float) ($data['outstanding_principal'] ?? 0);
         $outstandingInterest  = (float) ($data['outstanding_interest']  ?? 0);
+        $paidPrincipalCol     = (float) ($data['paid_principal_col']    ?? -1);
+        $paidInterestCol      = (float) ($data['paid_interest_col']     ?? -1);
         $totalLoanAmount      = (float) $loan->total_amount;
         $loanPrincipal        = (float) $loan->principal;
         $loanTerm             = (int)   $loan->term;
@@ -323,11 +332,23 @@ class LoansImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
         $schedules = $loan->schedules()->orderBy('due_date')->orderBy('installment_number')->get();
         if ($schedules->isEmpty()) return;
 
-        // Strategy 1: direct balance subtraction
-        $alreadyPaid = round($totalLoanAmount - ($outstandingPrincipal + $outstandingInterest), 2);
+        // Strategy 0 (highest priority): use direct paid_principal + paid_interest columns
+        // This is the most accurate — the Excel explicitly says how much has been paid.
+        $alreadyPaid = 0.0;
+        if ($paidPrincipalCol >= 0) {
+            $paidInt     = $paidInterestCol >= 0 ? $paidInterestCol : 0.0;
+            $alreadyPaid = round($paidPrincipalCol + $paidInt, 2);
+        }
 
-        // Strategy 2: fallback via principal-reduction ratio
-        // Used when interest is not provided separately but outstanding_principal shows partial repayment
+        // Strategy 1: derive from outstanding balances  (total - outstanding = paid)
+        if ($alreadyPaid <= 0 && ($outstandingPrincipal > 0 || $outstandingInterest > 0)) {
+            $candidate = round($totalLoanAmount - ($outstandingPrincipal + $outstandingInterest), 2);
+            if ($candidate > 0) {
+                $alreadyPaid = $candidate;
+            }
+        }
+
+        // Strategy 2: fallback via outstanding_principal reduction ratio
         if ($alreadyPaid <= 0
             && $outstandingPrincipal > 0
             && $loanPrincipal > 0
