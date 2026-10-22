@@ -25,6 +25,10 @@ class RbacService
             ['slug' => 'manager',       'name' => 'Manager',         'category' => 'loan',   'is_system' => true],
             ['slug' => 'gm',            'name' => 'General Manager', 'category' => 'loan',   'is_system' => true],
             ['slug' => 'accountant',    'name' => 'Accountant',      'category' => 'finance','is_system' => true],
+            ['slug' => 'ceo',           'name' => 'CEO',             'category' => 'loan',   'is_system' => true],
+            ['slug' => 'teller',        'name' => 'Teller',          'category' => 'loan',   'is_system' => true],
+            ['slug' => 'cso',           'name' => 'CSO',             'category' => 'loan',   'is_system' => true],
+            ['slug' => 'credit_officer','name' => 'Credit Officer',  'category' => 'loan',   'is_system' => true],
         ];
 
         // Define default permissions (comprehensive list for all modules)
@@ -174,6 +178,41 @@ class RbacService
                 'reports.view', 'reports.export',
                 'billing.view', 'billing.manage',
                 'accounts.view', 'accounts.manage',
+            ],
+            'ceo' => [
+                'dashboard.view',
+                'borrowers.view', 'borrowers.create', 'borrowers.edit', 'borrowers.delete',
+                'loans.view', 'loans.create', 'loans.edit', 'loans.delete', 'loan.stage.decide', 'loan.disburse',
+                'loan-products.view', 'loan-products.manage',
+                'repayments.view', 'repayments.create', 'repayments.edit', 'repayments.delete',
+                'reports.view', 'reports.export',
+                'staff.view', 'staff.create', 'staff.edit',
+                'accounts.view', 'accounts.manage',
+                'groups.view', 'groups.manage',
+                'messages.view', 'messages.send',
+                'settings.view',
+            ],
+            'teller' => [
+                'dashboard.view',
+                'borrowers.view', 'borrowers.create', 'borrowers.edit',
+                'loans.view', 'loans.create', 'loans.edit', 'loan.stage.decide', 'loan.disburse',
+                'repayments.view', 'repayments.create', 'repayments.edit',
+                'reports.view',
+                'groups.view',
+            ],
+            'cso' => [
+                'dashboard.view',
+                'borrowers.view', 'borrowers.create', 'borrowers.edit',
+                'loans.view', 'loans.create', 'loan.stage.decide',
+                'repayments.view', 'repayments.create',
+                'groups.view',
+            ],
+            'credit_officer' => [
+                'dashboard.view',
+                'borrowers.view', 'borrowers.create', 'borrowers.edit',
+                'loans.view', 'loans.create', 'loans.edit', 'loan.stage.decide',
+                'repayments.view', 'repayments.create', 'repayments.edit',
+                'reports.view',
             ],
             // Super Admin implicitly has all permissions; we also explicitly grant for consistency
             'superadmin' => array_keys($permMap),

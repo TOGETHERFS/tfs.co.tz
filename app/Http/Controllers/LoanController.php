@@ -132,6 +132,7 @@ class LoanController extends Controller
 
     public function edit(Loan $loan)
     {
+        $this->authorize('update', $loan);
         $products = LoanProduct::query()
             ->where('is_active', true)
             ->get([
@@ -324,6 +325,7 @@ class LoanController extends Controller
 
     public function destroy(Loan $loan)
     {
+        $this->authorize('delete', $loan);
         DB::beginTransaction();
         try {
             // Delete related records first
@@ -502,23 +504,38 @@ class LoanController extends Controller
             'application_date' => 'nullable|date',
             'first_payment_date' => 'required|date|after_or_equal:yesterday',
             'purpose' => 'nullable|string|max:500',
-            // Collateral validation
+            // Collateral validation (supports both single object and array)
             'collateral_required' => 'nullable|boolean',
-            'collateral.type' => 'required_if:collateral_required,true|nullable|string|in:land,building,vehicle,machinery,livestock,inventory,equipment,other',
+            'collateral.type' => 'nullable|string|in:land,building,vehicle,machinery,livestock,inventory,equipment,other',
             'collateral.value' => 'nullable|numeric|min:0',
             'collateral.buying_price' => 'nullable|numeric|min:0',
             'collateral.selling_price' => 'nullable|numeric|min:0',
             'collateral.description' => 'nullable|string|max:500',
-            // Guarantor validation
+            'collaterals' => 'nullable|array',
+            'collaterals.*.type' => 'nullable|string|in:land,building,vehicle,machinery,livestock,inventory,equipment,other',
+            'collaterals.*.value' => 'nullable|numeric|min:0',
+            'collaterals.*.buying_price' => 'nullable|numeric|min:0',
+            'collaterals.*.selling_price' => 'nullable|numeric|min:0',
+            'collaterals.*.description' => 'nullable|string|max:500',
+            // Guarantor validation (supports both single object and array)
             'guarantor_required' => 'nullable|boolean',
-            'guarantor.type' => 'required_if:guarantor_required,true|nullable|string|in:spouse,sister,brother,parent,friend,colleague,other',
-            'guarantor.name' => 'required_if:guarantor_required,true|nullable|string|max:255',
-            'guarantor.phone' => 'required_if:guarantor_required,true|nullable|string|max:20',
+            'guarantor.type' => 'nullable|string|in:spouse,sister,brother,parent,friend,colleague,other',
+            'guarantor.name' => 'nullable|string|max:255',
+            'guarantor.phone' => 'nullable|string|max:20',
             'guarantor.email' => 'nullable|email|max:255',
             'guarantor.street' => 'nullable|string|max:255',
             'guarantor.ward' => 'nullable|string|max:255',
             'guarantor.district' => 'nullable|string|max:255',
             'guarantor.region' => 'nullable|string|max:255',
+            'guarantors' => 'nullable|array',
+            'guarantors.*.type' => 'nullable|string|in:spouse,sister,brother,parent,friend,colleague,other',
+            'guarantors.*.name' => 'nullable|string|max:255',
+            'guarantors.*.phone' => 'nullable|string|max:20',
+            'guarantors.*.email' => 'nullable|email|max:255',
+            'guarantors.*.street' => 'nullable|string|max:255',
+            'guarantors.*.ward' => 'nullable|string|max:255',
+            'guarantors.*.district' => 'nullable|string|max:255',
+            'guarantors.*.region' => 'nullable|string|max:255',
             // LGA validation
             'lga.officer_name' => 'nullable|string|max:255',
             'lga.position' => 'nullable|string|max:255',
@@ -652,20 +669,39 @@ class LoanController extends Controller
             }
 
             // Extract collateral, guarantor and LGA data if provided
-            $collateral = $request->input('collateral');
-            if (!is_array($collateral)) {
-                $collateral = [];
+            // Support both single object (legacy) and array (new multi-item UI)
+            $rawCollaterals = $request->input('collaterals', $request->input('collateral'));
+            if (!is_array($rawCollaterals)) {
+                $rawCollaterals = [];
             }
-            // Convert empty strings to null for decimal fields to prevent MySQL errors
-            foreach (['value', 'buying_price', 'selling_price'] as $field) {
-                if (array_key_exists($field, $collateral) && $collateral[$field] === '') {
-                    $collateral[$field] = null;
+            // Normalize: if it's an associative array (single object), wrap it
+            if (!empty($rawCollaterals) && array_keys($rawCollaterals) !== range(0, count($rawCollaterals) - 1)) {
+                $rawCollaterals = [$rawCollaterals];
+            }
+            // Filter out empty collateral rows
+            $rawCollaterals = array_values(array_filter($rawCollaterals, fn($c) => !empty($c['type'])));
+            // Convert empty strings to null for decimal fields
+            $rawCollaterals = array_map(function ($c) {
+                foreach (['value', 'buying_price', 'selling_price'] as $field) {
+                    if (array_key_exists($field, $c) && $c[$field] === '') $c[$field] = null;
                 }
+                return $c;
+            }, $rawCollaterals);
+            $collateral = $rawCollaterals[0] ?? [];
+            $additionalCollaterals = array_slice($rawCollaterals, 1);
+
+            $rawGuarantors = $request->input('guarantors', $request->input('guarantor'));
+            if (!is_array($rawGuarantors)) {
+                $rawGuarantors = [];
             }
-            $guarantor = $request->input('guarantor');
-            if (!is_array($guarantor)) {
-                $guarantor = [];
+            // Normalize: if it's an associative array (single object), wrap it
+            if (!empty($rawGuarantors) && array_keys($rawGuarantors) !== range(0, count($rawGuarantors) - 1)) {
+                $rawGuarantors = [$rawGuarantors];
             }
+            // Filter out empty guarantor rows
+            $rawGuarantors = array_values(array_filter($rawGuarantors, fn($g) => !empty($g['name'])));
+            $guarantor = $rawGuarantors[0] ?? [];
+            $additionalGuarantors = array_slice($rawGuarantors, 1);
             $lga = $request->input('lga');
             if (!is_array($lga)) {
                 $lga = [];
@@ -712,6 +748,8 @@ class LoanController extends Controller
                 'guarantor_ward' => $guarantor['ward'] ?? null,
                 'guarantor_district' => $guarantor['district'] ?? null,
                 'guarantor_region' => $guarantor['region'] ?? null,
+                'additional_guarantors' => !empty($additionalGuarantors) ? $additionalGuarantors : null,
+                'additional_collaterals' => !empty($additionalCollaterals) ? $additionalCollaterals : null,
                 'lga_officer_name' => $lga['officer_name'] ?? null,
                 'lga_position' => $lga['position'] ?? null,
                 'lga_phone' => $lga['phone'] ?? null,

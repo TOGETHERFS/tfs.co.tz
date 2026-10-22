@@ -15,7 +15,24 @@ class LoanPolicy
 
     public function update(User $user, Loan $loan): bool
     {
-        return $user->tenant_id === $loan->tenant_id && $user->hasPermission('loan.update');
+        if ($user->tenant_id !== $loan->tenant_id) return false;
+        if ($user->isAdmin()) return true;
+        $editRoles = ['ceo', 'teller', 'manager', 'gm', 'loan_officer', 'credit_officer'];
+        foreach ($editRoles as $r) {
+            if ($user->hasRole($r) || $user->role === $r) return true;
+        }
+        return $user->hasPermission('loans.edit');
+    }
+
+    public function delete(User $user, Loan $loan): bool
+    {
+        if ($user->tenant_id !== $loan->tenant_id) return false;
+        if ($user->isAdmin()) return true;
+        $deleteRoles = ['ceo', 'manager', 'gm'];
+        foreach ($deleteRoles as $r) {
+            if ($user->hasRole($r) || $user->role === $r) return true;
+        }
+        return $user->hasPermission('loans.delete');
     }
 
     /**

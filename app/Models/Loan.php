@@ -58,6 +58,8 @@ class Loan extends BaseModel
         'penalty_type',
         'penalty_value',
         'penalty_frequency',
+        'additional_guarantors',
+        'additional_collaterals',
     ];
 
     protected $appends = ['outstanding_balance', 'total_paid'];
@@ -74,6 +76,8 @@ class Loan extends BaseModel
         'application_date' => 'date',
         'disbursed_at' => 'datetime',
         'first_payment_date' => 'date',
+        'additional_guarantors' => 'array',
+        'additional_collaterals' => 'array',
     ];
 
     /**

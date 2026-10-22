@@ -349,18 +349,13 @@ class ClientController extends Controller
                         ->with('success', 'Borrower updated successfully.');
     }
 
-    /**
-     * Remove the specified client from storage.
-     */
-    public function destroy(Request $request, Client $client)
-    {
-        // Only superadmin can force delete with related records
-        $forceDelete = $request->has('force') && auth()->user()->role === 'superadmin';
-        
-        if (!$forceDelete && $client->hasActiveLoans()) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
+    DB::beginTransaction();
+    try {
+        // Delete all related records
+        foreach ($client->loans as $loan) {
+            $loan->schedules()->delete();
+            $loan->documents()->delete();
+            $loan->repayments()->delete();
                     'message' => 'Cannot delete borrower with active loans. Use force delete as superadmin.'
                 ], 422);
             }

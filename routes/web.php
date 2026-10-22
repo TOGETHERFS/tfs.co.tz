@@ -1030,7 +1030,7 @@ Route::get('/health', function () {
 
 
 
-Route::middleware(['web', 'auth', 'resolve.tenant', 'tenant.access', 'role:manager,loan_officer,officer,teller,accountant,gm,admin'])
+Route::middleware(['web', 'auth', 'resolve.tenant', 'tenant.access', 'role:manager,loan_officer,officer,teller,accountant,gm,admin,ceo,cso,credit_officer'])
     ->group(function () {
         // New: session-auth borrower search and JSON show for loan create page
         Route::get('/clients/search', [ClientController::class, 'search'])->name('clients.search');

@@ -497,113 +497,135 @@
 
                     <!-- Collateral Required -->
                     <div class="flex items-center">
-                        <input type="checkbox" 
-                               id="collateral_required"
-                               x-model="form.collateral_required"
+                        <input type="checkbox" id="collateral_required" x-model="form.collateral_required"
                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
                         <label for="collateral_required" class="ml-2 block text-sm text-gray-900">
                             {{ __('messages.collateral_required') }}
                         </label>
                     </div>
 
-                    <!-- Collateral Information (shown when checkbox is ticked) -->
-                    <div x-show="form.collateral_required" x-cloak class="border border-gray-200 rounded-lg p-4 bg-yellow-50 space-y-4">
-                        <h3 class="text-sm font-semibold text-gray-900 mb-3">{{ __('messages.collateral_information') }}</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.collateral_type') }} <span class="text-red-500">*</span></label>
-                                <select x-model="form.collateral.type" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                                    <option value="">{{ __('messages.select_collateral_type') }}</option>
-                                    <option value="land">{{ __('messages.land') }}</option>
-                                    <option value="building">{{ __('messages.building') }}</option>
-                                    <option value="vehicle">{{ __('messages.vehicle') }}</option>
-                                    <option value="machinery">{{ __('messages.machinery') }}</option>
-                                    <option value="livestock">{{ __('messages.livestock') }}</option>
-                                    <option value="inventory">{{ __('messages.inventory') }}</option>
-                                    <option value="equipment">{{ __('messages.equipment') }}</option>
-                                    <option value="other">{{ __('messages.other') }}</option>
-                                </select>
+                    <!-- Multiple Collaterals -->
+                    <div x-show="form.collateral_required" x-cloak class="space-y-3">
+                        <template x-for="(col, ci) in form.collaterals" :key="ci">
+                            <div class="border border-yellow-200 rounded-lg p-4 bg-yellow-50 relative">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-semibold text-gray-800" x-text="'Collateral #' + (ci + 1)"></span>
+                                    <button type="button" x-show="form.collaterals.length > 1"
+                                            @click="form.collaterals.splice(ci, 1)"
+                                            class="text-red-500 hover:text-red-700 text-xs font-medium">&#10005; Remove</button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+                                        <select x-model="col.type" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                            <option value="">Select type</option>
+                                            <option value="land">Land</option>
+                                            <option value="building">Building</option>
+                                            <option value="vehicle">Vehicle</option>
+                                            <option value="machinery">Machinery</option>
+                                            <option value="livestock">Livestock</option>
+                                            <option value="inventory">Inventory</option>
+                                            <option value="equipment">Equipment</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div x-show="col.type === 'other'" class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Specify type <span class="text-red-500">*</span></label>
+                                        <input type="text" x-model="col.other_type" placeholder="Specify collateral type" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Current Value (TZS)</label>
+                                        <input type="number" x-model="col.value" placeholder="0.00" step="0.01" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Buying Price (TZS)</label>
+                                        <input type="number" x-model="col.buying_price" placeholder="0.00" step="0.01" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price (TZS)</label>
+                                        <input type="number" x-model="col.selling_price" placeholder="0.00" step="0.01" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                        <input type="text" x-model="col.description" placeholder="Brief description" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                </div>
                             </div>
-                            <div x-show="form.collateral.type === 'other'" class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.specify_other_collateral') }} <span class="text-red-500">*</span></label>
-                                <input type="text" x-model="form.collateral.other_type" placeholder="Please specify the collateral type" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.current_value') }} (TZS)</label>
-                                <input type="number" x-model="form.collateral.value" placeholder="0.00" step="0.01" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.buying_price') }} (TZS)</label>
-                                <input type="number" x-model="form.collateral.buying_price" placeholder="0.00" step="0.01" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.selling_price') }} (TZS)</label>
-                                <input type="number" x-model="form.collateral.selling_price" placeholder="0.00" step="0.01" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.description') }}</label>
-                                <input type="text" x-model="form.collateral.description" placeholder="Brief description" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                        </div>
+                        </template>
+                        <button type="button" @click="form.collaterals.push({type:'',value:'',buying_price:'',selling_price:'',description:'',other_type:''})"
+                                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-yellow-700 bg-yellow-100 border border-yellow-300 rounded hover:bg-yellow-200">
+                            + Add Another Collateral
+                        </button>
                     </div>
 
                     <!-- Guarantor Required -->
                     <div class="flex items-center">
-                        <input type="checkbox" 
-                               id="guarantor_required"
-                               x-model="form.guarantor_required"
+                        <input type="checkbox" id="guarantor_required" x-model="form.guarantor_required"
                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
                         <label for="guarantor_required" class="ml-2 block text-sm text-gray-900">
                             {{ __('messages.guarantor_required') }}
                         </label>
                     </div>
 
-                    <!-- Guarantor Information (shown when checkbox is ticked) -->
-                    <div x-show="form.guarantor_required" x-cloak class="border border-gray-200 rounded-lg p-4 bg-blue-50 space-y-4">
-                        <h3 class="text-sm font-semibold text-gray-900 mb-3">{{ __('messages.guarantor_information') }}</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.guarantor_type') }} <span class="text-red-500">*</span></label>
-                                <select x-model="form.guarantor.type" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                                    <option value="">{{ __('messages.select_relationship') }}</option>
-                                    <option value="spouse">{{ __('messages.spouse') }}</option>
-                                    <option value="sister">{{ __('messages.sister') }}</option>
-                                    <option value="brother">{{ __('messages.brother') }}</option>
-                                    <option value="parent">{{ __('messages.parent') }}</option>
-                                    <option value="friend">{{ __('messages.friend') }}</option>
-                                    <option value="colleague">{{ __('messages.colleague') }}</option>
-                                    <option value="other">{{ __('messages.other') }}</option>
-                                </select>
+                    <!-- Multiple Guarantors -->
+                    <div x-show="form.guarantor_required" x-cloak class="space-y-3">
+                        <template x-for="(grt, gi) in form.guarantors" :key="gi">
+                            <div class="border border-blue-200 rounded-lg p-4 bg-blue-50 relative">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-semibold text-gray-800" x-text="'Guarantor #' + (gi + 1)"></span>
+                                    <button type="button" x-show="form.guarantors.length > 1"
+                                            @click="form.guarantors.splice(gi, 1)"
+                                            class="text-red-500 hover:text-red-700 text-xs font-medium">&#10005; Remove</button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Relationship <span class="text-red-500">*</span></label>
+                                        <select x-model="grt.type" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                            <option value="">Select relationship</option>
+                                            <option value="spouse">Spouse</option>
+                                            <option value="sister">Sister</option>
+                                            <option value="brother">Brother</option>
+                                            <option value="parent">Parent</option>
+                                            <option value="friend">Friend</option>
+                                            <option value="colleague">Colleague</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+                                        <input type="text" x-model="grt.name" placeholder="Guarantor's full name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone <span class="text-red-500">*</span></label>
+                                        <input type="tel" x-model="grt.phone" placeholder="0712345678" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-gray-400">(optional)</span></label>
+                                        <input type="email" x-model="grt.email" placeholder="email@example.com" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Street / Village</label>
+                                        <input type="text" x-model="grt.street" placeholder="Street address" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Ward</label>
+                                        <input type="text" x-model="grt.ward" placeholder="Ward name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">District</label>
+                                        <input type="text" x-model="grt.district" placeholder="District name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                                        <input type="text" x-model="grt.region" placeholder="Region name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.full_name') }} <span class="text-red-500">*</span></label>
-                                <input type="text" x-model="form.guarantor.name" placeholder="Guarantor's full name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.phone_number') }} <span class="text-red-500">*</span></label>
-                                <input type="tel" x-model="form.guarantor.phone" placeholder="0712345678" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.email_address') }} <span class="text-gray-400">({{ __('messages.optional') }})</span></label>
-                                <input type="email" x-model="form.guarantor.email" placeholder="email@example.com" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.street_village') }}</label>
-                                <input type="text" x-model="form.guarantor.street" placeholder="Street address" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.ward') }}</label>
-                                <input type="text" x-model="form.guarantor.ward" placeholder="Ward name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.district') }}</label>
-                                <input type="text" x-model="form.guarantor.district" placeholder="District name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.region') }}</label>
-                                <input type="text" x-model="form.guarantor.region" placeholder="Region name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                            </div>
-                        </div>
+                        </template>
+                        <button type="button" @click="form.guarantors.push({type:'',name:'',phone:'',email:'',street:'',ward:'',district:'',region:''})"
+                                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-100 border border-blue-300 rounded hover:bg-blue-200">
+                            + Add Another Guarantor
+                        </button>
                     </div>
 
                     <!-- Attachments Section -->
@@ -717,24 +739,9 @@ function loanCreate() {
             purpose: '',
             notes: '',
             collateral_required: false,
-            collateral: {
-                type: '',
-                value: '',
-                buying_price: '',
-                selling_price: '',
-                description: ''
-            },
+            collaterals: [{type:'',value:'',buying_price:'',selling_price:'',description:'',other_type:''}],
             guarantor_required: false,
-            guarantor: {
-                type: '',
-                name: '',
-                phone: '',
-                email: '',
-                street: '',
-                ward: '',
-                district: '',
-                region: ''
-            },
+            guarantors: [{type:'',name:'',phone:'',email:'',street:'',ward:'',district:'',region:''}],
             lga: {
                 officer_name: '',
                 position: '',
@@ -1057,9 +1064,9 @@ function loanCreate() {
                     application_date: this.form.application_date || null,
                     purpose: this.form.purpose || null,
                     collateral_required: this.form.collateral_required,
-                    collateral: this.form.collateral_required ? this.form.collateral : null,
+                    collaterals: this.form.collateral_required ? this.form.collaterals : [],
                     guarantor_required: this.form.guarantor_required,
-                    guarantor: this.form.guarantor_required ? this.form.guarantor : null,
+                    guarantors: this.form.guarantor_required ? this.form.guarantors : [],
                     lga: this.form.lga,
                     processing_fee_type: this.form.processing_fee_type,
                     processing_fee_rate: parseFloat(this.form.processing_fee_rate || 0),
@@ -1265,24 +1272,9 @@ function loanCreate() {
                 purpose: '',
                 notes: '',
                 collateral_required: false,
-                collateral: {
-                    type: '',
-                    value: '',
-                    buying_price: '',
-                    selling_price: '',
-                    description: ''
-                },
+                collaterals: [{type:'',value:'',buying_price:'',selling_price:'',description:'',other_type:''}],
                 guarantor_required: false,
-                guarantor: {
-                    type: '',
-                    name: '',
-                    phone: '',
-                    email: '',
-                    street: '',
-                    ward: '',
-                    district: '',
-                    region: ''
-                },
+                guarantors: [{type:'',name:'',phone:'',email:'',street:'',ward:'',district:'',region:''}],
                 lga: {
                     officer_name: '',
                     position: '',
