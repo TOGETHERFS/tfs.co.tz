@@ -367,20 +367,6 @@ class ClientController extends Controller
             return redirect()->back()->with('error', 'You do not have permission to delete borrowers.');
         }
 
-        $activeLoans = $client->loans()->whereIn('status', ['active', 'disbursed', 'approved', 'pending'])->count();
-        $forceDelete = $request->has('force') && $user->isSuperAdmin();
-
-        if ($activeLoans > 0 && !$forceDelete) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot delete borrower with active loans. Use force delete as superadmin.'
-                ], 422);
-            }
-            return redirect()->route('clients.show', $client)
-                           ->with('error', 'Cannot delete borrower with active loans.');
-        }
-
         DB::beginTransaction();
         try {
             foreach ($client->loans as $loan) {
