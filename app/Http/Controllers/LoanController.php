@@ -1189,6 +1189,8 @@ class LoanController extends Controller
             'Total Interest',
             'Outstanding Principal',
             'Outstanding Interest',
+            'Paid Principal',
+            'Paid Interest',
             'No Of Installments',
             'Disbursement Date',
             'Ending Date',
@@ -1203,6 +1205,8 @@ class LoanController extends Controller
             '90000',                      // Total Interest
             '275000',                     // Outstanding Principal
             '82500',                      // Outstanding Interest
+            '25000',                      // Paid Principal (amount of principal already paid)
+            '7500',                       // Paid Interest (amount of interest already paid)
             '12',                         // No Of Installments
             date('d/m/Y', strtotime('-6 months')), // Disbursement Date
             date('d/m/Y', strtotime('+6 months')), // Ending Date

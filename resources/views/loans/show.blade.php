@@ -208,7 +208,7 @@
     <div class="overflow-hidden rounded-xl" style="background:#ffffff;border:1px solid #e5e7eb;">
         <div class="px-5 pt-5 pb-0">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-base font-bold uppercase tracking-widest" style="color:#92400e;">{{ __('messages.repayment_schedule') }}</h3>
+                <h3 class="text-base font-bold uppercase tracking-widest" style="color:#1a5c43;">{{ __('messages.repayment_schedule') }}</h3>
                 <div class="flex space-x-2 no-print">
                     @if(auth()->user()?->isAdmin() || auth()->user()?->hasPermission('loans.edit'))
                     <button @click="syncSchedules()" :disabled="syncingSchedules"
@@ -246,11 +246,11 @@
             <!-- Tabs -->
             <div class="flex rounded-lg overflow-hidden mb-0" style="background:#f3f4f6;display:inline-flex;">
                 <button @click="scheduleTab='detail'"
-                        :style="scheduleTab==='detail' ? 'background:#c4621a;color:#fff;' : 'background:transparent;color:#6b7280;'"
+                        :style="scheduleTab==='detail' ? 'background:#1a5c43;color:#fff;' : 'background:transparent;color:#6b7280;'"
                         class="px-6 py-2 text-sm font-semibold transition-colors"
                         x-text="scheduleDetailLabel()"></button>
                 <button @click="scheduleTab='yearly'"
-                        :style="scheduleTab==='yearly' ? 'background:#c4621a;color:#fff;' : 'background:transparent;color:#6b7280;'"
+                        :style="scheduleTab==='yearly' ? 'background:#1a5c43;color:#fff;' : 'background:transparent;color:#6b7280;'"
                         class="px-6 py-2 text-sm font-semibold transition-colors">Yearly breakdown</button>
             </div>
         </div>
@@ -260,17 +260,17 @@
             <table class="min-w-full text-xs" style="border-collapse:collapse;">
                 <thead>
                     <tr>
-                        <th class="px-3 py-3 text-left font-bold whitespace-nowrap" style="background:#f3f4f6;color:#92400e;border-bottom:2px solid #e5e7eb;">#</th>
-                        <th class="px-3 py-3 text-left font-bold whitespace-nowrap" style="background:#f3f4f6;color:#92400e;border-bottom:2px solid #e5e7eb;">Due Date</th>
-                        <th class="px-3 py-3 text-left font-bold whitespace-nowrap" style="background:#f3f4f6;color:#92400e;border-bottom:2px solid #e5e7eb;">Event Type</th>
-                        <th class="px-3 py-3 text-left font-bold whitespace-nowrap" style="background:#f3f4f6;color:#92400e;border-bottom:2px solid #e5e7eb;">Currency</th>
-                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f3f4f6;color:#15803d;border-bottom:2px solid #e5e7eb;">Principal Amount</th>
-                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f3f4f6;color:#c2410c;border-bottom:2px solid #e5e7eb;">Interest Amount</th>
-                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f3f4f6;color:#92400e;border-bottom:2px solid #e5e7eb;">Total Amount</th>
-                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f3f4f6;color:#1d4ed8;border-bottom:2px solid #e5e7eb;">Serviced Amount</th>
-                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f3f4f6;color:#dc2626;border-bottom:2px solid #e5e7eb;">Unserviced Amount</th>
-                        <th class="px-3 py-3 text-center font-bold whitespace-nowrap" style="background:#f3f4f6;color:#92400e;border-bottom:2px solid #e5e7eb;">Status</th>
-                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f3f4f6;color:#dc2626;border-bottom:2px solid #e5e7eb;">Days in Arrears</th>
+                        <th class="px-3 py-3 text-left font-bold whitespace-nowrap" style="background:#f0faf4;color:#1a5c43;border-bottom:2px solid #237a56;">#</th>
+                        <th class="px-3 py-3 text-left font-bold whitespace-nowrap" style="background:#f0faf4;color:#1a5c43;border-bottom:2px solid #237a56;">Due Date</th>
+                        <th class="px-3 py-3 text-left font-bold whitespace-nowrap" style="background:#f0faf4;color:#1a5c43;border-bottom:2px solid #237a56;">Event Type</th>
+                        <th class="px-3 py-3 text-left font-bold whitespace-nowrap" style="background:#f0faf4;color:#1a5c43;border-bottom:2px solid #237a56;">Currency</th>
+                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f0faf4;color:#15803d;border-bottom:2px solid #237a56;">Principal Amount</th>
+                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f0faf4;color:#c2410c;border-bottom:2px solid #237a56;">Interest Amount</th>
+                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f0faf4;color:#1a5c43;border-bottom:2px solid #237a56;">Total Amount</th>
+                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f0faf4;color:#1d4ed8;border-bottom:2px solid #237a56;">Serviced Amount</th>
+                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f0faf4;color:#dc2626;border-bottom:2px solid #237a56;">Unserviced Amount</th>
+                        <th class="px-3 py-3 text-center font-bold whitespace-nowrap" style="background:#f0faf4;color:#1a5c43;border-bottom:2px solid #237a56;">Status</th>
+                        <th class="px-3 py-3 text-right font-bold whitespace-nowrap" style="background:#f0faf4;color:#dc2626;border-bottom:2px solid #237a56;">Days in Arrears</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -317,13 +317,13 @@
                     </template>
                     <!-- Totals row -->
                     <tr x-show="(loan?.schedules || []).length > 0" style="background:#f3f4f6;font-weight:700;">
-                        <td class="px-3 py-3 text-sm font-bold" colspan="4" style="color:#92400e;border-top:2px solid #16a34a;">Total Events: <span x-text="(loan?.schedules||[]).length"></span></td>
-                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#15803d;border-top:2px solid #16a34a;" x-text="formatNumber(scheduleTotals().principal)"></td>
-                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#c2410c;border-top:2px solid #16a34a;" x-text="formatNumber(scheduleTotals().interest)"></td>
-                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#111827;border-top:2px solid #16a34a;" x-text="formatNumber(scheduleTotals().total)"></td>
-                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#1d4ed8;border-top:2px solid #16a34a;" x-text="formatNumber(scheduleTotals().serviced)"></td>
-                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#dc2626;border-top:2px solid #16a34a;" x-text="formatNumber(scheduleTotals().unserviced)"></td>
-                        <td class="px-3 py-3" style="border-top:2px solid #16a34a;" colspan="2">
+                        <td class="px-3 py-3 text-sm font-bold" colspan="4" style="color:#1a5c43;border-top:2px solid #237a56;">Total Events: <span x-text="(loan?.schedules||[]).length"></span></td>
+                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#15803d;border-top:2px solid #237a56;" x-text="formatNumber(scheduleTotals().principal)"></td>
+                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#c2410c;border-top:2px solid #237a56;" x-text="formatNumber(scheduleTotals().interest)"></td>
+                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#111827;border-top:2px solid #237a56;" x-text="formatNumber(scheduleTotals().total)"></td>
+                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#1d4ed8;border-top:2px solid #237a56;" x-text="formatNumber(scheduleTotals().serviced)"></td>
+                        <td class="px-3 py-3 text-sm text-right font-bold" style="color:#dc2626;border-top:2px solid #237a56;" x-text="formatNumber(scheduleTotals().unserviced)"></td>
+                        <td class="px-3 py-3" style="border-top:2px solid #237a56;" colspan="2">
                             <span class="text-xs" style="color:#6b7280;">Paid: <span style="color:#15803d;" x-text="scheduleTotals().servicedCount"></span> &nbsp;|&nbsp; Unpaid: <span style="color:#dc2626;" x-text="scheduleTotals().unservicedCount"></span></span>
                         </td>
                     </tr>
