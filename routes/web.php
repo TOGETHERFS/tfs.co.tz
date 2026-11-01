@@ -745,12 +745,36 @@ Route::middleware(['auth', 'resolve.tenant', 'tenant.access'])->group(function (
         Route::get('/client-analysis', [ReportsController::class, 'clientAnalysis'])->name('client-analysis');
         Route::get('/export/{type}', [ReportsController::class, 'exportPdf'])->middleware('perm:reports.export')->name('export');
 
-        // New microfinance reports
+        // Existing microfinance reports
         Route::get('/daily-portfolio', [ReportsController::class, 'dailyPortfolio'])->name('daily-portfolio');
         Route::get('/par-report', [ReportsController::class, 'parReport'])->name('par-report');
         Route::get('/branch-performance', [ReportsController::class, 'branchPerformance'])->name('branch-performance');
         Route::get('/cash-position', [ReportsController::class, 'cashPosition'])->name('cash-position');
         Route::get('/staff-activity', [ReportsController::class, 'staffActivity'])->name('staff-activity');
+
+        // A. TRANSACTIONS
+        Route::get('/daily-transactions', [ReportsController::class, 'dailyTransactions'])->name('daily-transactions');
+        Route::get('/expense-report', [ReportsController::class, 'expenseReport'])->name('expense-report');
+        Route::get('/fee-income', [ReportsController::class, 'feeIncome'])->name('fee-income');
+
+        // B. LOANS
+        Route::get('/loan-arrears', [ReportsController::class, 'loanArrears'])->name('loan-arrears');
+        Route::get('/loan-outstanding', [ReportsController::class, 'loanOutstanding'])->name('loan-outstanding');
+        Route::get('/loan-disbursement', [ReportsController::class, 'loanDisbursement'])->name('loan-disbursement');
+        Route::get('/expected-repayment', [ReportsController::class, 'expectedRepayment'])->name('expected-repayment');
+        Route::get('/loan-transactions', [ReportsController::class, 'loanTransactions'])->name('loan-transactions');
+        Route::get('/par-summary', [ReportsController::class, 'parSummary'])->name('par-summary');
+        Route::get('/accrued-interest', [ReportsController::class, 'accruedInterest'])->name('accrued-interest');
+
+        // C. STATEMENTS
+        Route::get('/account-statement', [ReportsController::class, 'accountStatement'])->name('account-statement');
+        Route::get('/member-statement', [ReportsController::class, 'memberStatement'])->name('member-statement');
+
+        // CSV exports for new reports
+        Route::get('/daily-transactions/export', [ReportsController::class, 'exportDailyTransactions'])->name('daily-transactions.export');
+        Route::get('/loan-arrears/export', [ReportsController::class, 'exportLoanArrears'])->name('loan-arrears.export');
+        Route::get('/loan-outstanding/export', [ReportsController::class, 'exportLoanOutstanding'])->name('loan-outstanding.export');
+        Route::get('/loan-disbursement/export', [ReportsController::class, 'exportLoanDisbursement'])->name('loan-disbursement.export');
 
         // Accounts section
         Route::prefix('accounts')->name('accounts.')->middleware('perm:accounts.view')->group(function () {

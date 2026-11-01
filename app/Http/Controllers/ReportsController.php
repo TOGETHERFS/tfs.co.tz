@@ -1108,4 +1108,775 @@ class ReportsController extends Controller
                      ->take(10)
                      ->get();
     }
+
+    // =========================================================================
+    // A. TRANSACTION REPORTS
+    // =========================================================================
+
+    /**
+     * Daily Transactions Report — repayments + disbursements in a date range.
+     */
+    public function dailyTransactions(Request $request)
+    {
+        $dateFrom = $request->get('date_from', now()->format('Y-m-d'));
+        $dateTo   = $request->get('date_to',   now()->format('Y-m-d'));
+        $type     = $request->get('type', '');      // repayment|disbursement|''
+        $method   = $request->get('payment_method', '');
+        $search   = $request->get('search', '');
+
+        // ── REPAYMENTS ────────────────────────────────────────────────────────
+        $repQuery = Repayment::with(['loan.client', 'user'])
+            ->whereBetween('payment_date', [$dateFrom, $dateTo]);
+
+        if ($method) $repQuery->where('payment_method', $method);
+
+        if ($search) {
+            $repQuery->where(function ($q) use ($search) {
+                $q->where('receipt_number', 'like', "%{$search}%")
+                  ->orWhereHas('loan', fn($lq) => $lq->where('loan_number', 'like', "%{$search}%")
+                      ->orWhereHas('client', fn($cq) => $cq->where('first_name', 'like', "%{$search}%")
+                          ->orWhere('last_name', 'like', "%{$search}%")));
+            });
+        }
+
+        $repayments = (!$type || $type === 'repayment') ? $repQuery->get() : collect();
+
+        // ── DISBURSEMENTS ─────────────────────────────────────────────────────
+        $disQuery = Loan::with(['client', 'user'])
+            ->whereNotNull('disbursed_at')
+            ->whereBetween('disbursed_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
+
+        if ($search) {
+            $disQuery->where(function ($q) use ($search) {
+                $q->where('loan_number', 'like', "%{$search}%")
+                  ->orWhereHas('client', fn($cq) => $cq->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $disbursements = (!$type || $type === 'disbursement') ? $disQuery->get() : collect();
+
+        // ── TOTALS ────────────────────────────────────────────────────────────
+        $totals = [
+            'total_repayments'   => $repayments->sum('amount'),
+            'repayment_count'    => $repayments->count(),
+            'total_disbursed'    => $disbursements->sum('principal'),
+            'disbursement_count' => $disbursements->count(),
+        ];
+
+        return view('reports.daily-transactions', compact(
+            'repayments', 'disbursements', 'totals',
+            'dateFrom', 'dateTo', 'type', 'method', 'search'
+        ));
+    }
+
+    /**
+     * Expense Report.
+     */
+    public function expenseReport(Request $request)
+    {
+        $dateFrom   = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo     = $request->get('date_to',   now()->format('Y-m-d'));
+        $categoryId = $request->get('category_id', '');
+        $search     = $request->get('search', '');
+
+        try {
+            $query = \App\Models\Accounting\Expense::with(['category', 'createdBy'])
+                ->whereBetween('expense_date', [$dateFrom, $dateTo]);
+
+            if ($categoryId) $query->where('category_id', $categoryId);
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('expense_number', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%")
+                      ->orWhere('payee', 'like', "%{$search}%");
+                });
+            }
+
+            $expenses   = $query->orderBy('expense_date', 'desc')->paginate(25)->withQueryString();
+            $totalAmount = \App\Models\Accounting\Expense::whereBetween('expense_date', [$dateFrom, $dateTo])
+                ->when($categoryId, fn($q) => $q->where('category_id', $categoryId))
+                ->sum('amount');
+
+            $categories = \App\Models\Accounting\ExpenseCategory::orderBy('name')->get();
+        } catch (\Exception $e) {
+            $expenses    = collect();
+            $totalAmount = 0;
+            $categories  = collect();
+        }
+
+        return view('reports.expense-report', compact(
+            'expenses', 'totalAmount', 'categories',
+            'dateFrom', 'dateTo', 'categoryId', 'search'
+        ));
+    }
+
+    /**
+     * Fee Income Report — processing fees collected on loans.
+     * Excludes principal and interest repayments to prevent double-counting.
+     */
+    public function feeIncome(Request $request)
+    {
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo   = $request->get('date_to',   now()->format('Y-m-d'));
+        $search   = $request->get('search', '');
+
+        // Fee income = processing_fee on disbursed loans in the period
+        $query = Loan::with(['client', 'user'])
+            ->whereNotNull('disbursed_at')
+            ->where('processing_fee', '>', 0)
+            ->whereBetween('disbursed_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('loan_number', 'like', "%{$search}%")
+                  ->orWhereHas('client', fn($cq) => $cq->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $feeLoans       = $query->orderBy('disbursed_at', 'desc')->paginate(25)->withQueryString();
+        $totalFeeIncome = Loan::withoutGlobalScope('tenant')->where('tenant_id', auth()->user()->tenant_id)->whereNotNull('disbursed_at')
+            ->where('processing_fee', '>', 0)
+            ->whereBetween('disbursed_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->sum('processing_fee');
+
+        return view('reports.fee-income', compact(
+            'feeLoans', 'totalFeeIncome', 'dateFrom', 'dateTo', 'search'
+        ));
+    }
+
+    // =========================================================================
+    // B. LOAN REPORTS
+    // =========================================================================
+
+    /**
+     * Loan Arrears Report — overdue installments only.
+     * Uses schedule-based calculation; a loan is in arrears only when it has
+     * past-due unpaid/partial schedules.
+     */
+    public function loanArrears(Request $request)
+    {
+        $asOfDate = $request->get('as_of_date', now()->format('Y-m-d'));
+        $search   = $request->get('search', '');
+        $minDays  = (int) $request->get('min_days', 1);
+
+        $query = Loan::with(['client', 'schedules', 'user'])
+            ->whereIn('status', ['disbursed', 'active', 'partially_paid'])
+            ->whereHas('schedules', function ($q) use ($asOfDate) {
+                $q->whereIn('status', ['pending', 'partial'])
+                  ->where('due_date', '<', $asOfDate);
+            });
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('loan_number', 'like', "%{$search}%")
+                  ->orWhereHas('client', fn($cq) => $cq->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $loans = $query->get()->map(function ($loan) use ($asOfDate) {
+            $overdueSchedules = $loan->schedules->filter(fn($s) =>
+                in_array($s->status, ['pending', 'partial']) && $s->due_date < $asOfDate
+            );
+            $loan->overdue_amount  = $overdueSchedules->sum(fn($s) => $s->total_amount - $s->paid_amount);
+            $loan->overdue_count   = $overdueSchedules->count();
+            $loan->oldest_due_date = $overdueSchedules->min('due_date');
+            $loan->days_overdue    = $loan->oldest_due_date
+                ? (int) now()->diffInDays(\Carbon\Carbon::parse($loan->oldest_due_date), false) * -1
+                : 0;
+            return $loan;
+        })->filter(fn($l) => $l->days_overdue >= $minDays)->values();
+
+        $totals = [
+            'loan_count'     => $loans->count(),
+            'overdue_amount' => $loans->sum('overdue_amount'),
+        ];
+
+        return view('reports.loan-arrears', compact(
+            'loans', 'totals', 'asOfDate', 'search', 'minDays'
+        ));
+    }
+
+    /**
+     * Loan Outstanding Report.
+     */
+    public function loanOutstanding(Request $request)
+    {
+        $search    = $request->get('search', '');
+        $productId = $request->get('product_id', '');
+        $status    = $request->get('status', '');
+
+        $query = Loan::with(['client', 'product', 'schedules'])
+            ->whereIn('status', ['disbursed', 'active', 'partially_paid']);
+
+        if ($productId) $query->where('product_id', $productId);
+        if ($status)    $query->where('status', $status);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('loan_number', 'like', "%{$search}%")
+                  ->orWhereHas('client', fn($cq) => $cq->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $loans = $query->orderBy('disbursed_at', 'desc')->paginate(25)->withQueryString();
+
+        // Compute per-loan outstanding using schedule logic
+        $loans->getCollection()->transform(function ($loan) {
+            $schedPaid     = (float) $loan->schedules->sum('paid_amount');
+            $totalRepayable = (float) $loan->total_amount;
+            $principalRepaid = $loan->schedules
+                ->where('status', 'paid')
+                ->sum('principal_amount');
+            $interestRepaid  = $loan->schedules
+                ->where('status', 'paid')
+                ->sum('interest_amount');
+            $outstandingPrincipal = max(0, (float)$loan->principal - $principalRepaid);
+            $outstandingInterest  = max(0, ($totalRepayable - (float)$loan->principal) - $interestRepaid);
+            $loan->principal_repaid       = round($principalRepaid, 2);
+            $loan->outstanding_principal  = round($outstandingPrincipal, 2);
+            $loan->outstanding_interest   = round($outstandingInterest, 2);
+            $loan->total_outstanding      = round($outstandingPrincipal + $outstandingInterest, 2);
+            return $loan;
+        });
+
+        $products = \App\Models\LoanProduct::orderBy('name')->get();
+
+        $totals = [
+            'original_principal'  => $loans->getCollection()->sum('principal'),
+            'principal_repaid'    => $loans->getCollection()->sum('principal_repaid'),
+            'outstanding_principal' => $loans->getCollection()->sum('outstanding_principal'),
+            'outstanding_interest'  => $loans->getCollection()->sum('outstanding_interest'),
+            'total_outstanding'     => $loans->getCollection()->sum('total_outstanding'),
+        ];
+
+        return view('reports.loan-outstanding', compact(
+            'loans', 'totals', 'products', 'productId', 'status', 'search'
+        ));
+    }
+
+    /**
+     * Loan Disbursement Report — actual disbursements only.
+     */
+    public function loanDisbursement(Request $request)
+    {
+        $dateFrom  = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo    = $request->get('date_to',   now()->format('Y-m-d'));
+        $productId = $request->get('product_id', '');
+        $search    = $request->get('search', '');
+
+        $query = Loan::with(['client', 'product', 'user'])
+            ->whereNotNull('disbursed_at')
+            ->whereBetween('disbursed_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
+
+        if ($productId) $query->where('product_id', $productId);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('loan_number', 'like', "%{$search}%")
+                  ->orWhereHas('client', fn($cq) => $cq->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $loans    = $query->orderBy('disbursed_at', 'desc')->paginate(25)->withQueryString();
+        $products = \App\Models\LoanProduct::orderBy('name')->get();
+
+        $totals = [
+            'count'            => Loan::whereNotNull('disbursed_at')
+                ->whereBetween('disbursed_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+                ->when($productId, fn($q) => $q->where('product_id', $productId))
+                ->count(),
+            'total_disbursed'  => Loan::whereNotNull('disbursed_at')
+                ->whereBetween('disbursed_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+                ->when($productId, fn($q) => $q->where('product_id', $productId))
+                ->sum('principal'),
+            'total_fees'       => Loan::whereNotNull('disbursed_at')
+                ->whereBetween('disbursed_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+                ->when($productId, fn($q) => $q->where('product_id', $productId))
+                ->sum('processing_fee'),
+        ];
+
+        return view('reports.loan-disbursement', compact(
+            'loans', 'totals', 'products', 'productId', 'dateFrom', 'dateTo', 'search'
+        ));
+    }
+
+    /**
+     * Expected Loan Repayment Report — installment schedule with status.
+     */
+    public function expectedRepayment(Request $request)
+    {
+        $dateFrom = $request->get('date_from', now()->format('Y-m-d'));
+        $dateTo   = $request->get('date_to',   now()->addDays(30)->format('Y-m-d'));
+        $status   = $request->get('status', '');   // upcoming|due_today|partially_paid|paid|overdue
+        $search   = $request->get('search', '');
+
+        $today = now()->format('Y-m-d');
+
+        $query = LoanSchedule::with(['loan.client'])
+            ->whereHas('loan', fn($lq) => $lq->whereIn('status', ['disbursed', 'active', 'partially_paid']));
+
+        if (!$status) {
+            $query->whereBetween('due_date', [$dateFrom, $dateTo]);
+        } else {
+            switch ($status) {
+                case 'upcoming':
+                    $query->where('due_date', '>', $today)->whereIn('status', ['pending', 'partial']);
+                    break;
+                case 'due_today':
+                    $query->where('due_date', $today)->whereIn('status', ['pending', 'partial']);
+                    break;
+                case 'partially_paid':
+                    $query->where('status', 'partial');
+                    break;
+                case 'paid':
+                    $query->where('status', 'paid')
+                          ->whereBetween('due_date', [$dateFrom, $dateTo]);
+                    break;
+                case 'overdue':
+                    $query->whereIn('status', ['pending', 'partial'])->where('due_date', '<', $today);
+                    break;
+                default:
+                    $query->whereBetween('due_date', [$dateFrom, $dateTo]);
+            }
+        }
+
+        if ($search) {
+            $query->whereHas('loan', fn($lq) =>
+                $lq->where('loan_number', 'like', "%{$search}%")
+                   ->orWhereHas('client', fn($cq) => $cq->where('first_name', 'like', "%{$search}%")
+                       ->orWhere('last_name', 'like', "%{$search}%"))
+            );
+        }
+
+        $schedules = $query->orderBy('due_date')->paginate(25)->withQueryString();
+
+        $totals = [
+            'total_expected' => $schedules->getCollection()->sum('total_amount'),
+            'total_paid'     => $schedules->getCollection()->sum('paid_amount'),
+            'total_remaining'=> $schedules->getCollection()->sum(fn($s) => max(0, $s->total_amount - $s->paid_amount)),
+        ];
+
+        return view('reports.expected-repayment', compact(
+            'schedules', 'totals', 'dateFrom', 'dateTo', 'status', 'search', 'today'
+        ));
+    }
+
+    /**
+     * Loan Transaction Report — repayments with breakdown.
+     */
+    public function loanTransactions(Request $request)
+    {
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo   = $request->get('date_to',   now()->format('Y-m-d'));
+        $method   = $request->get('payment_method', '');
+        $search   = $request->get('search', '');
+
+        $query = Repayment::with(['loan.client', 'user'])
+            ->whereBetween('payment_date', [$dateFrom, $dateTo]);
+
+        if ($method) $query->where('payment_method', $method);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('receipt_number', 'like', "%{$search}%")
+                  ->orWhereHas('loan', fn($lq) => $lq->where('loan_number', 'like', "%{$search}%")
+                      ->orWhereHas('client', fn($cq) => $cq->where('first_name', 'like', "%{$search}%")
+                          ->orWhere('last_name', 'like', "%{$search}%")));
+            });
+        }
+
+        $transactions = $query->orderBy('payment_date', 'desc')->paginate(25)->withQueryString();
+
+        $totals = [
+            'total_amount' => Repayment::whereBetween('payment_date', [$dateFrom, $dateTo])
+                ->when($method, fn($q) => $q->where('payment_method', $method))
+                ->sum('amount'),
+            'count'        => Repayment::whereBetween('payment_date', [$dateFrom, $dateTo])
+                ->when($method, fn($q) => $q->where('payment_method', $method))
+                ->count(),
+        ];
+
+        return view('reports.loan-transactions', compact(
+            'transactions', 'totals', 'dateFrom', 'dateTo', 'method', 'search'
+        ));
+    }
+
+    /**
+     * Summarized PAR Report.
+     * PAR = outstanding balance of loans with at least 1 overdue unpaid installment /
+     *       total outstanding balance of all active loans.
+     */
+    public function parSummary(Request $request)
+    {
+        $asOf = $request->get('as_of_date', now()->format('Y-m-d'));
+
+        $activeLoanIds = Loan::whereIn('status', ['disbursed', 'active', 'partially_paid'])->pluck('id');
+
+        // Total outstanding (schedule-based)
+        $schedPaidTotal = (float) LoanSchedule::whereIn('loan_id', $activeLoanIds)->sum('paid_amount');
+        if ($schedPaidTotal > 0) {
+            $totalOutstanding = (float) LoanSchedule::whereIn('loan_id', $activeLoanIds)
+                ->whereIn('status', ['pending', 'partial'])
+                ->selectRaw('SUM(total_amount - paid_amount) as rem')->value('rem') ?? 0;
+        } else {
+            $totalOutstanding = max(0, (float) Loan::whereIn('id', $activeLoanIds)->sum('total_amount')
+                - (float) Repayment::whereIn('loan_id', $activeLoanIds)->sum('amount'));
+        }
+
+        // PAR brackets — based on loan outstanding balance for loans meeting the threshold
+        $brackets = [
+            'par_1'  => 1,
+            'par_30' => 30,
+            'par_60' => 60,
+            'par_90' => 90,
+        ];
+
+        $parData = [];
+        foreach ($brackets as $key => $days) {
+            $cutoff = \Carbon\Carbon::parse($asOf)->subDays($days)->format('Y-m-d');
+            // Loans in arrears for >= $days: have an overdue schedule older than $cutoff
+            $loanIdsAtRisk = LoanSchedule::whereIn('loan_id', $activeLoanIds)
+                ->whereIn('status', ['pending', 'partial'])
+                ->where('due_date', '<=', $cutoff)
+                ->distinct()->pluck('loan_id');
+
+            // Outstanding balance for those loans (schedule-based)
+            if ($schedPaidTotal > 0) {
+                $atRiskBalance = (float) LoanSchedule::whereIn('loan_id', $loanIdsAtRisk)
+                    ->whereIn('status', ['pending', 'partial'])
+                    ->selectRaw('SUM(total_amount - paid_amount) as rem')->value('rem') ?? 0;
+            } else {
+                $atRiskBalance = max(0, (float) Loan::whereIn('id', $loanIdsAtRisk)->sum('total_amount')
+                    - (float) Repayment::whereIn('loan_id', $loanIdsAtRisk)->sum('amount'));
+            }
+
+            $parData[$key] = [
+                'days'       => $days,
+                'loan_count' => $loanIdsAtRisk->count(),
+                'amount'     => round($atRiskBalance, 2),
+                'percent'    => $totalOutstanding > 0 ? round($atRiskBalance / $totalOutstanding * 100, 2) : 0,
+            ];
+        }
+
+        $summary = [
+            'total_active_loans'  => $activeLoanIds->count(),
+            'total_outstanding'   => round($totalOutstanding, 2),
+            'loans_in_arrears'    => LoanSchedule::whereIn('loan_id', $activeLoanIds)
+                ->whereIn('status', ['pending', 'partial'])
+                ->where('due_date', '<', $asOf)
+                ->distinct()->count('loan_id'),
+        ];
+
+        return view('reports.par-summary', compact('parData', 'summary', 'asOf'));
+    }
+
+    /**
+     * Accrued Interest Report.
+     * Accrued interest = total_amount - principal on active loans.
+     * Interest paid = sum of (interest_amount) on paid schedules.
+     */
+    public function accruedInterest(Request $request)
+    {
+        $search    = $request->get('search', '');
+        $productId = $request->get('product_id', '');
+
+        $query = Loan::with(['client', 'product', 'schedules'])
+            ->whereIn('status', ['disbursed', 'active', 'partially_paid']);
+
+        if ($productId) $query->where('product_id', $productId);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('loan_number', 'like', "%{$search}%")
+                  ->orWhereHas('client', fn($cq) => $cq->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $loans = $query->orderBy('disbursed_at', 'desc')->paginate(25)->withQueryString();
+
+        $loans->getCollection()->transform(function ($loan) {
+            $totalInterest   = max(0, (float)$loan->total_amount - (float)$loan->principal);
+            $interestPaid    = (float) $loan->schedules->whereIn('status', ['paid'])->sum('interest_amount');
+            $interestAccrued = $totalInterest;           // total contracted interest
+            $interestOut     = max(0, $totalInterest - $interestPaid);
+            $loan->total_interest       = round($totalInterest, 2);
+            $loan->interest_paid        = round($interestPaid, 2);
+            $loan->interest_accrued     = round($interestAccrued, 2);
+            $loan->interest_outstanding = round($interestOut, 2);
+            return $loan;
+        });
+
+        $products = \App\Models\LoanProduct::orderBy('name')->get();
+
+        $totals = [
+            'total_interest'       => $loans->getCollection()->sum('total_interest'),
+            'interest_paid'        => $loans->getCollection()->sum('interest_paid'),
+            'interest_outstanding' => $loans->getCollection()->sum('interest_outstanding'),
+        ];
+
+        return view('reports.accrued-interest', compact(
+            'loans', 'totals', 'products', 'productId', 'search'
+        ));
+    }
+
+    // =========================================================================
+    // C. STATEMENT REPORTS
+    // =========================================================================
+
+    /**
+     * Account Statement Report — loan-level repayment history as a statement.
+     */
+    public function accountStatement(Request $request)
+    {
+        $loanId   = $request->get('loan_id', '');
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo   = $request->get('date_to',   now()->format('Y-m-d'));
+
+        $loan         = null;
+        $transactions = collect();
+        $openingBalance = 0;
+        $closingBalance = 0;
+
+        $loans = Loan::with('client')
+            ->whereIn('status', ['disbursed', 'active', 'partially_paid', 'completed'])
+            ->orderBy('loan_number')
+            ->get();
+
+        if ($loanId) {
+            $loan = Loan::with(['client', 'schedules', 'repayments.user'])->findOrFail($loanId);
+
+            // Opening balance = outstanding just before dateFrom
+            $paidBefore = (float) Repayment::where('loan_id', $loanId)
+                ->where('payment_date', '<', $dateFrom)
+                ->sum('amount');
+            $openingBalance = max(0, (float)$loan->total_amount - $paidBefore);
+
+            // Transactions in range
+            $transactions = Repayment::with('user')
+                ->where('loan_id', $loanId)
+                ->whereBetween('payment_date', [$dateFrom, $dateTo])
+                ->orderBy('payment_date')
+                ->get();
+
+            // Compute running balance
+            $running = $openingBalance;
+            $transactions = $transactions->map(function ($t) use (&$running) {
+                $t->running_balance = max(0, $running - (float)$t->amount);
+                $running = $t->running_balance;
+                return $t;
+            });
+            $closingBalance = $running;
+        }
+
+        return view('reports.account-statement', compact(
+            'loan', 'loans', 'transactions', 'openingBalance', 'closingBalance',
+            'loanId', 'dateFrom', 'dateTo'
+        ));
+    }
+
+    /**
+     * Member Statement Report — all loans + transactions for a client.
+     */
+    public function memberStatement(Request $request)
+    {
+        $clientId = $request->get('client_id', '');
+        $loanId   = $request->get('loan_id', '');
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo   = $request->get('date_to',   now()->format('Y-m-d'));
+
+        $clients = Client::orderBy('first_name')->get();
+        $client  = $clientId ? Client::with(['loans.repayments.user', 'loans.schedules'])->find($clientId) : null;
+
+        $loans        = collect();
+        $repayments   = collect();
+        $selectedLoan = null;
+
+        if ($client) {
+            $loanQuery = $client->loans()->with(['repayments', 'schedules'])
+                ->whereIn('status', ['disbursed', 'active', 'partially_paid', 'completed']);
+            $loans = $loanQuery->get();
+
+            if ($loanId) {
+                $selectedLoan = $loans->firstWhere('id', $loanId);
+                $repayments = Repayment::with('user')
+                    ->where('loan_id', $loanId)
+                    ->whereBetween('payment_date', [$dateFrom, $dateTo])
+                    ->orderBy('payment_date')
+                    ->get();
+            } else {
+                $repayments = Repayment::with(['loan', 'user'])
+                    ->whereIn('loan_id', $loans->pluck('id'))
+                    ->whereBetween('payment_date', [$dateFrom, $dateTo])
+                    ->orderBy('payment_date')
+                    ->get();
+            }
+        }
+
+        return view('reports.member-statement', compact(
+            'clients', 'client', 'loans', 'selectedLoan', 'repayments',
+            'clientId', 'loanId', 'dateFrom', 'dateTo'
+        ));
+    }
+
+    // =========================================================================
+    // CSV EXPORTS
+    // =========================================================================
+
+    public function exportDailyTransactions(Request $request)
+    {
+        $dateFrom = $request->get('date_from', now()->format('Y-m-d'));
+        $dateTo   = $request->get('date_to',   now()->format('Y-m-d'));
+
+        $repayments = Repayment::with(['loan.client', 'user'])
+            ->whereBetween('payment_date', [$dateFrom, $dateTo])
+            ->orderBy('payment_date')->get();
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="daily_transactions_' . $dateFrom . '_' . $dateTo . '.csv"',
+        ];
+
+        $callback = function () use ($repayments) {
+            $h = fopen('php://output', 'w');
+            fprintf($h, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($h, ['Date','Receipt No','Client','Loan No','Amount','Method','Recorded By']);
+            foreach ($repayments as $r) {
+                fputcsv($h, [
+                    optional($r->payment_date)->format('d/m/Y'),
+                    $r->receipt_number,
+                    optional(optional($r->loan)->client)->full_name ?? '—',
+                    optional($r->loan)->loan_number,
+                    $r->amount,
+                    $r->payment_method,
+                    optional($r->user)->name ?? '—',
+                ]);
+            }
+            fclose($h);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportLoanArrears(Request $request)
+    {
+        $asOfDate = $request->get('as_of_date', now()->format('Y-m-d'));
+
+        $loans = Loan::with(['client', 'schedules'])
+            ->whereIn('status', ['disbursed', 'active', 'partially_paid'])
+            ->whereHas('schedules', fn($q) => $q->whereIn('status', ['pending','partial'])->where('due_date', '<', $asOfDate))
+            ->get()->map(function ($loan) use ($asOfDate) {
+                $overdue = $loan->schedules->filter(fn($s) => in_array($s->status, ['pending','partial']) && $s->due_date < $asOfDate);
+                $loan->overdue_amount  = $overdue->sum(fn($s) => $s->total_amount - $s->paid_amount);
+                $loan->oldest_due_date = $overdue->min('due_date');
+                $loan->days_overdue    = $loan->oldest_due_date ? (int) now()->diffInDays(\Carbon\Carbon::parse($loan->oldest_due_date), false) * -1 : 0;
+                return $loan;
+            });
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="loan_arrears_' . $asOfDate . '.csv"',
+        ];
+
+        $callback = function () use ($loans) {
+            $h = fopen('php://output', 'w');
+            fprintf($h, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($h, ['Loan No','Client','Overdue Amount','Days Overdue','Oldest Due Date']);
+            foreach ($loans as $l) {
+                fputcsv($h, [
+                    $l->loan_number,
+                    optional($l->client)->full_name ?? optional($l->client)->first_name . ' ' . optional($l->client)->last_name,
+                    $l->overdue_amount,
+                    $l->days_overdue,
+                    $l->oldest_due_date,
+                ]);
+            }
+            fclose($h);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportLoanOutstanding(Request $request)
+    {
+        $loans = Loan::with(['client', 'schedules'])
+            ->whereIn('status', ['disbursed', 'active', 'partially_paid'])
+            ->get()->map(function ($loan) {
+                $principalRepaid = $loan->schedules->where('status','paid')->sum('principal_amount');
+                $interestRepaid  = $loan->schedules->where('status','paid')->sum('interest_amount');
+                $loan->outstanding_principal = max(0, (float)$loan->principal - $principalRepaid);
+                $loan->outstanding_interest  = max(0, ((float)$loan->total_amount - (float)$loan->principal) - $interestRepaid);
+                $loan->total_outstanding     = $loan->outstanding_principal + $loan->outstanding_interest;
+                return $loan;
+            });
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="loan_outstanding_' . now()->format('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function () use ($loans) {
+            $h = fopen('php://output', 'w');
+            fprintf($h, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($h, ['Loan No','Client','Principal','Outstanding Principal','Outstanding Interest','Total Outstanding','Disbursed At','Maturity']);
+            foreach ($loans as $l) {
+                fputcsv($h, [
+                    $l->loan_number,
+                    optional($l->client)->full_name ?? optional($l->client)->first_name . ' ' . optional($l->client)->last_name,
+                    $l->principal,
+                    $l->outstanding_principal,
+                    $l->outstanding_interest,
+                    $l->total_outstanding,
+                    optional($l->disbursed_at)?->format('d/m/Y'),
+                    optional($l->first_payment_date)?->format('d/m/Y'),
+                ]);
+            }
+            fclose($h);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportLoanDisbursement(Request $request)
+    {
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo   = $request->get('date_to',   now()->format('Y-m-d'));
+
+        $loans = Loan::with(['client', 'product', 'user'])
+            ->whereNotNull('disbursed_at')
+            ->whereBetween('disbursed_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->orderBy('disbursed_at')->get();
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="loan_disbursement_' . $dateFrom . '_' . $dateTo . '.csv"',
+        ];
+
+        $callback = function () use ($loans) {
+            $h = fopen('php://output', 'w');
+            fprintf($h, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($h, ['Loan No','Client','Product','Principal','Processing Fee','Disbursed At','Status','Disbursed By']);
+            foreach ($loans as $l) {
+                fputcsv($h, [
+                    $l->loan_number,
+                    optional($l->client)->full_name ?? optional($l->client)->first_name . ' ' . optional($l->client)->last_name,
+                    optional($l->product)->name,
+                    $l->principal,
+                    $l->processing_fee,
+                    optional($l->disbursed_at)?->format('d/m/Y'),
+                    $l->status,
+                    optional($l->user)->name ?? '—',
+                ]);
+            }
+            fclose($h);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

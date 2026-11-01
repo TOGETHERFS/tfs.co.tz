@@ -148,10 +148,30 @@ class RepaymentController extends Controller
     }
 
     /**
+     * Determine if the authenticated user may post repayments.
+     * Authorized roles: Teller (CSO), CEO, Admin / Administrator, SuperAdmin.
+     */
+    private function canPostRepayment(): bool
+    {
+        $user = auth()->user();
+        $role = strtolower($user->role ?? '');
+
+        $allowed = ['teller', 'cso', 'ceo', 'admin', 'administrator'];
+
+        return in_array($role, $allowed)
+            || (method_exists($user, 'isAdmin')      && $user->isAdmin())
+            || (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin())
+            || (method_exists($user, 'hasPermission') && $user->hasPermission('repayments.create'));
+    }
+
+    /**
      * Show the form for creating a new repayment.
      */
     public function create(Request $request)
     {
+        if (!$this->canPostRepayment()) {
+            abort(403, 'You are not authorized to post repayments.');
+        }
         $tenantId = auth()->user()->tenant_id ?? session('tenant_id');
         
         $loan = null;
@@ -183,6 +203,13 @@ class RepaymentController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$this->canPostRepayment()) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Unauthorized. You are not allowed to post repayments.'], 403);
+            }
+            abort(403, 'You are not authorized to post repayments.');
+        }
+
         $validated = $request->validate([
             'loan_id' => 'required|exists:loans,id',
             'schedule_id' => 'nullable|exists:loan_schedules,id',

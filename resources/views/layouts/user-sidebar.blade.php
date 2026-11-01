@@ -128,9 +128,17 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
+            @php
+                $repayRole = strtolower(auth()->user()->role ?? '');
+                $canPostRepayment = in_array($repayRole, ['teller', 'cso', 'ceo', 'admin', 'administrator'])
+                    || (method_exists(auth()->user(), 'isAdmin') && auth()->user()->isAdmin())
+                    || (method_exists(auth()->user(), 'isSuperAdmin') && auth()->user()->isSuperAdmin());
+            @endphp
             <div x-show="activeDropdown === 'repayments'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
                 <a href="{{ safeRoute('repayments.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('repayments.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_repayments') }}</a>
+                @if($canPostRepayment)
                 <a href="{{ safeRoute('repayments.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('repayments.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.record_repayment') }}</a>
+                @endif
                 @if(Route::has('repayments.history'))
                 <a href="{{ safeRoute('repayments.history') }}" class="flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('repayments.history') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,21 +169,28 @@
                 </svg>
             </button>
             <div x-show="activeDropdown === 'reports'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
-                @if(Route::has('reports.index'))
-                <a href="{{ safeRoute('reports.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.overview') }}</a>
-                @endif
-                @if(Route::has('reports.loan-portfolio'))
-                <a href="{{ safeRoute('reports.loan-portfolio') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.loan-portfolio') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.loan_portfolio') }}</a>
-                @endif
-                @if(Route::has('reports.arrears-aging'))
-                <a href="{{ safeRoute('reports.arrears-aging') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.arrears-aging') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.arrears_aging') }}</a>
-                @endif
-                @if(Route::has('reports.profit-loss'))
-                <a href="{{ safeRoute('reports.profit-loss') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.profit-loss') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.profit_loss') }}</a>
-                @endif
-                @if(Route::has('reports.collections'))
-                <a href="{{ safeRoute('reports.collections') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.collections') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.collections') }}</a>
-                @endif
+                <a href="{{ safeRoute('reports.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Overview</a>
+
+                {{-- A. TRANSACTIONS --}}
+                <p class="px-3 pt-2 pb-0.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Transactions</p>
+                <a href="{{ safeRoute('reports.daily-transactions') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.daily-transactions') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Daily Transactions</a>
+                <a href="{{ safeRoute('reports.expense-report') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.expense-report') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Expense Report</a>
+                <a href="{{ safeRoute('reports.fee-income') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.fee-income') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Fee Income</a>
+
+                {{-- B. LOANS --}}
+                <p class="px-3 pt-2 pb-0.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Loans</p>
+                <a href="{{ safeRoute('reports.loan-arrears') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.loan-arrears') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Loan Arrears</a>
+                <a href="{{ safeRoute('reports.loan-outstanding') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.loan-outstanding') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Loan Outstanding</a>
+                <a href="{{ safeRoute('reports.loan-disbursement') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.loan-disbursement') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Loan Disbursement</a>
+                <a href="{{ safeRoute('reports.expected-repayment') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.expected-repayment') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Expected Repayments</a>
+                <a href="{{ safeRoute('reports.loan-transactions') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.loan-transactions') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Loan Transactions</a>
+                <a href="{{ safeRoute('reports.par-summary') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.par-summary') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">PAR Summary</a>
+                <a href="{{ safeRoute('reports.accrued-interest') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.accrued-interest') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Accrued Interest</a>
+
+                {{-- C. STATEMENTS --}}
+                <p class="px-3 pt-2 pb-0.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Statements</p>
+                <a href="{{ safeRoute('reports.account-statement') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.account-statement') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Account Statement</a>
+                <a href="{{ safeRoute('reports.member-statement') }}" class="block px-3 py-1.5 text-sm rounded-md transition-colors {{ request()->routeIs('reports.member-statement') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Member Statement</a>
             </div>
         </div>
 
