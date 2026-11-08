@@ -169,7 +169,6 @@
                 </svg>
             </button>
             <div x-show="activeDropdown === 'reports'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
-                <a href="{{ safeRoute('reports.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">Overview</a>
 
                 {{-- A. TRANSACTIONS --}}
                 <p class="px-3 pt-2 pb-0.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Transactions</p>

@@ -14,6 +14,7 @@ class Loan extends BaseModel
         'group_id',
         'product_id',
         'user_id',
+        'branch_id',
         'loan_number',
         'application_date',
         'principal',
@@ -83,6 +84,11 @@ class Loan extends BaseModel
     /**
      * Get the client that owns the loan.
      */
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
     public function client()
     {
         return $this->belongsTo(Client::class);

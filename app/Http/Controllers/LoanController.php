@@ -163,7 +163,11 @@ class LoanController extends Controller
             ];
         })->values()->toArray();
 
-        return view('loans.edit', compact('loan', 'products', 'productsJson'));
+        $tenantId = auth()->user()->tenant_id;
+        $branches = \App\Models\Branch::where('tenant_id', $tenantId)->orderBy('name')->get();
+        $staff    = \App\Models\User::where('tenant_id', $tenantId)->orderBy('name')->get();
+
+        return view('loans.edit', compact('loan', 'products', 'productsJson', 'branches', 'staff'));
     }
 
     public function update(Request $request, Loan $loan)
@@ -190,6 +194,8 @@ class LoanController extends Controller
             'purpose' => 'nullable|string|max:500',
             'status' => 'nullable|string|in:pending,approved,rejected,disbursed,active,completed,defaulted',
             'notes' => 'nullable|string|max:1000',
+            'branch_id' => 'nullable|exists:branches,id',
+            'user_id'   => 'nullable|exists:users,id',
         ]);
 
         if ($validator->fails()) {
@@ -215,6 +221,8 @@ class LoanController extends Controller
                 'purpose',
                 'status',
                 'notes',
+                'branch_id',
+                'user_id',
             ]);
 
             // Update product reference and sync interest_type from product if product changed
