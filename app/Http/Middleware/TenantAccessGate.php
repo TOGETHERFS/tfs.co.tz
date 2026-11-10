@@ -52,7 +52,6 @@ class TenantAccessGate
             } else {
                 // User has no tenant - abort instead of redirect to prevent loop
                 abort(403, 'No tenant associated with your account. Please contact support.');
-            }
         }
 
         // Check if user belongs to the current tenant (loose comparison to handle string/int mismatch)
@@ -60,10 +59,16 @@ class TenantAccessGate
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Access denied: tenant mismatch.'], 403);
             }
-            auth()->logout();
-            session()->flush();
-            return redirect()->route('login')
-                           ->with('error', 'Access denied. You do not have permission to access this tenant.');
+            // Re-sync session tenant_id instead of logging out.
+            if ($user->tenant_id) {
+                session(['tenant_id' => $user->tenant_id]);
+                $sessionTenantId = $user->tenant_id;
+            } else {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'No tenant associated with this account.'], 403);
+                }
+                abort(403, 'No tenant associated with your account.');
+            }
         }
 
         // Check if tenant is active — also allow 'trial' so users are never silently locked out

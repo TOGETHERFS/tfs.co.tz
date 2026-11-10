@@ -178,12 +178,14 @@
             <div class="p-6">
                 @if(isset($loans) && $loans->count() > 0)
                     <p class="text-sm text-gray-600 mb-4">{{ __('messages.record_repayment_desc') }}</p>
-                    <form method="GET" action="{{ route('repayments.create') }}">
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
+                    <style>.ts-wrapper.single .ts-control{border-radius:.375rem;border-color:#d1d5db;padding:.4rem .75rem;font-size:.875rem}.ts-wrapper.single.focus .ts-control{border-color:#3b82f6;outline:none}</style>
+                    <form method="GET" action="{{ route('repayments.create') }}" id="loan-select-form">
                         <div class="mb-4">
-                            <label for="loan_id" class="block text-sm font-medium text-gray-700">{{ __('messages.select_loan_label') }}</label>
+                            <label for="loan_id" class="block text-sm font-medium text-gray-700">Search by Customer Name or Loan #</label>
                             <select name="loan_id" id="loan_id" 
                                     class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    required onchange="this.form.submit()">
+                                    required>
                                 <option value="">{{ __('messages.select_a_loan') }}</option>
                                 @foreach($loans as $loanItem)
                                     <option value="{{ $loanItem->id }}">
@@ -197,6 +199,15 @@
                             {{ __('messages.continue') }}
                         </button>
                     </form>
+                    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        new TomSelect('#loan_id', {
+                            placeholder: 'Type customer name or loan number...',
+                            onChange: function(value) { if (value) document.getElementById('loan-select-form').submit(); }
+                        });
+                    });
+                    </script>
                 @else
                     <div class="text-center py-8">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
