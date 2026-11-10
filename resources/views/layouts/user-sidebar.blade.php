@@ -11,7 +11,7 @@
     }
 
     $initialDropdown = null;
-    if (request()->routeIs('clients.*') || request()->routeIs('groups.*')) {
+    if (request()->routeIs('clients.*')) {
         $initialDropdown = 'clients';
     } elseif (request()->routeIs('loans.*') || request()->routeIs('loan-products.*')) {
         $initialDropdown = 'loans';
@@ -66,9 +66,9 @@
         <!-- Borrowers -->
         <div class="space-y-1">
             <button type="button" @click="activeDropdown = activeDropdown === 'clients' ? null : 'clients'" 
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('clients.*') || request()->routeIs('groups.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
+                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('clients.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
                 <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('clients.*') || request()->routeIs('groups.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
+                    <div class="p-1.5 rounded-lg {{ request()->routeIs('clients.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
@@ -83,8 +83,6 @@
                 <a href="{{ safeRoute('clients.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('clients.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_borrowers') }}</a>
                 <a href="{{ safeRoute('clients.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('clients.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.add_new_borrower') }}</a>
                 <a href="{{ safeRoute('clients.import') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('clients.import') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.import_borrowers') }}</a>
-                <a href="{{ safeRoute('groups.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('groups.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.view_groups') }}</a>
-                <a href="{{ safeRoute('groups.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('groups.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.add_group') }}</a>
             </div>
         </div>
 
@@ -393,27 +391,6 @@
             </div>
         </div>
 
-        <!-- Documents -->
-        <div class="space-y-1">
-            <button type="button" @click="activeDropdown = activeDropdown === 'documents' ? null : 'documents'"
-                    class="group w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 {{ request()->routeIs('documents.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}">
-                <div class="flex items-center">
-                    <div class="p-1.5 rounded-lg {{ request()->routeIs('documents.*') ? 'bg-white/20' : 'bg-blue-100 text-blue-600' }} mr-3">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    {{ __('messages.documents') }}
-                </div>
-                <svg class="h-4 w-4 transition-transform" :class="{ 'rotate-90': activeDropdown === 'documents' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-            <div x-show="activeDropdown === 'documents'" x-transition class="ml-8 space-y-1 border-l-2 border-blue-200 pl-4">
-                <a href="{{ safeRoute('documents.index') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('documents.index') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.all_documents') }}</a>
-                <a href="{{ safeRoute('documents.create') }}" class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('documents.create') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">{{ __('messages.upload_document') }}</a>
-            </div>
-        </div>
 
         <!-- Notifications -->
         <a href="{{ safeRoute('notifications.index') }}" 
