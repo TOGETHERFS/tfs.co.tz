@@ -21,9 +21,7 @@ class RepaymentController extends Controller
     public function index(Request $request)
     {
         $query = Repayment::with(['loan.client', 'user'])
-            ->whereHas('loan', function ($q) {
-                $q->whereIn('status', ['disbursed', 'active']);
-            });
+            ->whereHas('loan');
 
         // Search functionality
         if ($request->filled('search')) {
@@ -75,9 +73,7 @@ class RepaymentController extends Controller
 
         // BaseModel global scope already filters by tenant_id automatically
         $repayments = Repayment::with(['loan.client', 'user'])
-            ->whereHas('loan', function ($q) {
-                $q->whereIn('status', ['disbursed', 'active']);
-            })
+            ->whereHas('loan')
             ->whereDate('payment_date', '>=', $dateFrom)
             ->whereDate('payment_date', '<=', $dateTo)
             ->orderBy('payment_date')
@@ -113,9 +109,7 @@ class RepaymentController extends Controller
     {
         // BaseModel global scope already filters by tenant_id automatically
         $repayments = Repayment::with(['loan.client', 'user'])
-            ->whereHas('loan', function ($q) {
-                $q->whereIn('status', ['disbursed', 'active']);
-            })
+            ->whereHas('loan')
             ->whereDate('payment_date', '>=', $dateFrom)
             ->whereDate('payment_date', '<=', $dateTo)
             ->orderBy('payment_date')
