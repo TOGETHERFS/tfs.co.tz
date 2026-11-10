@@ -17,7 +17,22 @@ class ReportsController extends Controller
      */
     public function index()
     {
-        return redirect()->route('reports.daily-transactions');
+        return redirect()->route('reports.transactions-hub');
+    }
+
+    public function transactionsHub()
+    {
+        return view('reports.transactions-hub');
+    }
+
+    public function loansHub()
+    {
+        return view('reports.loans-hub');
+    }
+
+    public function statementsHub()
+    {
+        return view('reports.statements-hub');
     }
 
     /**

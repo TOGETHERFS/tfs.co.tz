@@ -175,16 +175,16 @@
                     $lnActive  = request()->routeIs($lnRoutes);
                     $stActive  = request()->routeIs($stRoutes);
                 @endphp
-                <a href="{{ safeRoute('reports.daily-transactions') }}"
-                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ $txActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
+                <a href="{{ safeRoute('reports.transactions-hub') }}"
+                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.transactions-hub') || $txActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     Transactions
                 </a>
-                <a href="{{ safeRoute('reports.loan-outstanding') }}"
-                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ $lnActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
+                <a href="{{ safeRoute('reports.loans-hub') }}"
+                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.loans-hub') || $lnActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     Loans
                 </a>
-                <a href="{{ safeRoute('reports.account-statement') }}"
-                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ $stActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
+                <a href="{{ safeRoute('reports.statements-hub') }}"
+                   class="block px-3 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('reports.statements-hub') || $stActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' }}">
                     Statements
                 </a>
             </div>

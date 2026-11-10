@@ -752,6 +752,11 @@ Route::middleware(['auth', 'resolve.tenant', 'tenant.access'])->group(function (
         Route::get('/cash-position', [ReportsController::class, 'cashPosition'])->name('cash-position');
         Route::get('/staff-activity', [ReportsController::class, 'staffActivity'])->name('staff-activity');
 
+        // Hub landing pages
+        Route::get('/transactions-hub', [ReportsController::class, 'transactionsHub'])->name('transactions-hub');
+        Route::get('/loans-hub', [ReportsController::class, 'loansHub'])->name('loans-hub');
+        Route::get('/statements-hub', [ReportsController::class, 'statementsHub'])->name('statements-hub');
+
         // A. TRANSACTIONS
         Route::get('/daily-transactions', [ReportsController::class, 'dailyTransactions'])->name('daily-transactions');
         Route::get('/expense-report', [ReportsController::class, 'expenseReport'])->name('expense-report');
