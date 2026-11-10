@@ -103,6 +103,8 @@ class UserDashboardController extends Controller
 
         $allTimeLoanIds = Loan::whereIn('status', ['disbursed', 'active', 'partially_paid', 'completed'])->pluck('id');
 
+        $tenantId = session('tenant_id') ?? optional($user)->tenant_id;
+
         $stats = [
             'total_clients'             => Client::count(),
             'total_loans'               => Loan::count(),
@@ -115,6 +117,9 @@ class UserDashboardController extends Controller
             'overdue_loans'             => $overdueIds->count(),
             'overdue_amount'            => $overdueAmount,
             'completed_loans'           => Loan::where('status', 'completed')->count(),
+            'new_clients_this_month'    => Client::whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
+            'new_loans_this_month'      => Loan::whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
+            'staff_count'               => $tenantId ? User::withoutGlobalScope('tenant')->where('tenant_id', $tenantId)->count() : 0,
         ];
 
         $todayDate = now()->toDateString();
