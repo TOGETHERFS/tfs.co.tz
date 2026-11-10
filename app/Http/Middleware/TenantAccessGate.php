@@ -52,6 +52,7 @@ class TenantAccessGate
             } else {
                 // User has no tenant - abort instead of redirect to prevent loop
                 abort(403, 'No tenant associated with your account. Please contact support.');
+            }
         }
 
         // Check if user belongs to the current tenant (loose comparison to handle string/int mismatch)
